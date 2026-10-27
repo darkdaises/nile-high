@@ -81,7 +81,7 @@ export function drawBackdrop(g, W, H, camY, height, t) {
 // World 1: the Cairo skyline of domes and minarets, sinking as you climb
 const CITY = (() => {
   const items = []; let x = -10;
-  while (x < 420) {
+  while (x < 1800) {   // wide enough for big screens
     const r = Math.random();
     if (r < 0.18) { items.push({ k: 'minaret', x, w: 10, h: 120 + Math.random() * 70 }); x += 18; }
     else if (r < 0.35) { items.push({ k: 'dome', x, w: 54 + Math.random() * 20, h: 50 + Math.random() * 25 }); x += 60; }

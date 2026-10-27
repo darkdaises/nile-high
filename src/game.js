@@ -3,12 +3,13 @@
 // Once you start climbing the city scrolls up, and it speeds up every 30 seconds. Fall off the bottom and it's over.
 // Jumping two or more ledges at once starts a combo; keep chaining big jumps to grow it.
 
-import { Sfx } from './sfx.js';
+import { Sfx, LOSE_LINES } from './sfx.js';
 import { drawSky, drawBackdrop, drawWalls, drawLedge, drawParticles } from './draw.js';
 import { drawCharacter } from './characters.js';
 import { LEVELS, LEVEL_FLOORS, levelOf } from './levels.js';
 
-export const W = 400, H = 640;          // logical playfield, scaled to the screen
+export const W = 400;                    // the tower is always 400 units wide; the screen shows as much height as fits
+const BASE = 600;                         // world y of the ground floor
 export const WALL = 34;                  // side wall thickness
 const GAP = 78;                           // vertical distance between ledges
 const G = 0.58, RUN = 0.62, AIR = 0.42, FRICTION = 0.86, MAXV = 8.2;
@@ -32,19 +33,28 @@ export class Game {
     requestAnimationFrame(this.loop);
   }
 
+  // Full screen on any shape. Phones (tall): the tower fills the width and you see more height.
+  // Wide screens: the tower stays centered at a comfortable height and the scenery fills the sides.
   resize() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const r = this.canvas.getBoundingClientRect();
-    this.canvas.width = Math.round(r.width * dpr); this.canvas.height = Math.round(r.height * dpr);
-    this.scale = this.canvas.width / W;
+    const cw = this.canvas.width = Math.max(1, Math.round(r.width * dpr)), ch = this.canvas.height = Math.max(1, Math.round(r.height * dpr));
+    if (cw / ch <= W / 720) { this.scale = cw / W; this.vw = W; this.vh = ch / this.scale; }
+    else { this.vh = 720; this.scale = ch / this.vh; this.vw = cw / this.scale; }
+    this.ox = (this.vw - W) / 2;
+    const oldY0 = this.camY0;
+    // on touch screens the control buttons cover the bottom, so start with the ground a bit higher
+    this.pad = matchMedia('(pointer: coarse)').matches ? 96 : 0;
+    this.camY0 = BASE + 40 + this.pad - this.vh;   // camera position with the ground at the bottom of the screen
+    if (this.camY !== undefined && oldY0 !== undefined && this.state !== 'playing') this.camY += this.camY0 - oldY0;
   }
 
   reset() {
     this.ledges = [];
     for (let i = 0; i < 14; i++) this.addLedge(i);
-    const p = this.player = { x: W / 2 - 17, y: this.ledges[0].y - 30, w: 34, h: 30, vx: 0, vy: 0, ground: 0, face: 1, squash: 0, blink: 0, air: 0 };
+    const p = this.player = { x: W / 2 - 17, y: this.ledges[0].y - 30, w: 34, h: 30, vx: 0, vy: 0, ground: 0, face: 1, squash: 0, blink: 0, air: 0, rot: 0, twirl: 1, trick: null };
     p.lastFloor = 0;
-    this.camY = 0;                 // world y at the top of the screen
+    this.camY = this.camY0;        // world y at the top of the screen
     this.speed = 0;                // auto-scroll speed (px per frame)
     this.scrolling = false;
     this.time = 0; this.hurry = 0; this.level = 0; this.zone = 0;
@@ -57,7 +67,7 @@ export class Game {
   }
 
   addLedge(i) {
-    const base = H - 40;
+    const base = BASE;
     if (i === 0) { this.ledges[0] = { i: 0, x: WALL, w: W - WALL * 2, y: base, full: true, prop: null }; return; }
     // the first ledge of every level is a full-width landing
     const milestone = i % LEVEL_FLOORS === 0;
@@ -72,6 +82,7 @@ export class Game {
     this.reset();
     this.state = 'playing';
     this.sfx.unlock();
+    this.sfx.startMusic(0);
   }
 
   setKey(k, down) {
@@ -89,12 +100,11 @@ export class Game {
     requestAnimationFrame(this.loop);
   }
 
-  // menu / game over: the blob bounces in place
+  // menu / game over: nothing moves except particles (the climber just rests on game over)
   idle(dt) {
     const p = this.player; this.time += dt;
-    p.vy += G; p.y += p.vy;
     const floorY = this.ledges[p.ground]?.y ?? this.ledges[0].y;
-    if (p.y + p.h >= floorY) { p.y = floorY - p.h; p.vy = this.state === 'menu' ? -8 : 0; p.squash = 0.35; }
+    p.y = floorY - p.h; p.vy = 0; p.rot = 0; p.twirl = 1;
     p.squash *= 0.85;
     this.updateParticles(dt);
   }
@@ -117,6 +127,13 @@ export class Game {
       p.vy = -(JUMP + Math.abs(p.vx) * JUMP_BOOST);
       p.air = 1; this.coyote = 0; this.jumpBuffer = 0; p.squash = -0.35;
       this.sfx.jump(Math.abs(p.vx) / MAXV);
+      // tricks: faster jumps twirl, big ones spin, and during a combo you pull a double flip
+      const power = Math.abs(p.vx) / MAXV, dir = p.vx >= 0 ? 1 : -1, air = (2 * -p.vy / G) / 60;
+      if (this.combo && power > 0.5) p.trick = { type: 'spin', turns: 2, dir, dur: air * 0.9, t: 0 };
+      else if (power > 0.75) p.trick = { type: 'spin', turns: 1, dir, dur: air * 0.85, t: 0 };
+      else if (power > 0.45) p.trick = { type: 'twirl', turns: 2, dir, dur: air * 0.8, t: 0 };
+      else p.trick = null;
+      if (p.trick) this.sfx.whoosh(p.trick.turns);
       this.dust(p.x + p.w / 2, p.y + p.h, 5);
     }
     if (!k.jump && p.vy < -4) p.vy += G * 0.6;   // let go early for a shorter hop
@@ -137,9 +154,16 @@ export class Game {
         if (prevBottom <= L.y + 1 && p.y + p.h >= L.y && p.x + p.w > L.x + 4 && p.x < L.x + L.w - 4) { landed = L; break; }
       }
     }
+    // trick animation (rotation for spins, horizontal squeeze for twirls)
+    if (p.trick && p.air) {
+      const T = p.trick; T.t += dt; const k = Math.min(1, T.t / T.dur), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      if (T.type === 'spin') { p.rot = T.dir * Math.PI * 2 * T.turns * e; p.twirl = 1; }
+      else { p.rot = 0; p.twirl = Math.cos(Math.PI * 2 * T.turns * e); }
+    } else if (!p.trick) { p.rot = p.air ? Math.max(-0.25, Math.min(0.25, p.vx * 0.03)) : 0; p.twirl = 1; }
+
     if (landed) {
       const wasAir = p.air;
-      p.y = landed.y - p.h; p.vy = 0; p.air = 0;
+      p.y = landed.y - p.h; p.vy = 0; p.air = 0; p.rot = 0; p.twirl = 1; p.trick = null;
       if (wasAir) { p.squash = 0.4; this.land(landed); }
       p.ground = landed.i;
     } else if (!p.air && !this.onLedge()) p.air = 1;
@@ -153,12 +177,12 @@ export class Game {
       this.speed = Math.min(3.4, 0.7 + (this.level - 1) * 0.36 + this.zone * 0.22);
       this.camY -= this.speed;
     }
-    const topZone = H * 0.32;
+    const topZone = this.vh * 0.32;
     if (p.y - this.camY < topZone) this.camY = p.y - topZone;
     this.hurry = Math.max(0, this.hurry - dt);
 
     // keep ledges coming above the screen
-    const need = Math.ceil((H - 40 - this.camY + 200) / GAP);
+    const need = Math.ceil((BASE - this.camY + 200) / GAP);
     for (let i = this.ledges.length; i <= need; i++) this.addLedge(i);
 
     // combo timer
@@ -169,7 +193,7 @@ export class Game {
     this.updateParticles(dt);
 
     // fell off the bottom
-    if (p.y - this.camY > H + 40) this.gameOver();
+    if (p.y - this.camY > this.vh + 40) this.gameOver();
     if (Math.random() < 0.1) this.emitHud();
   }
 
@@ -191,7 +215,7 @@ export class Game {
     } else if (jumped !== 0 && this.combo) this.endCombo();
     else this.sfx.land();
     const z = levelOf(L.i);
-    if (z > this.zone) { this.zone = z; this.sfx.milestone(); this.sparkle(W / 2, L.y, 40); }
+    if (z > this.zone) { this.zone = z; this.sfx.levelUp(); this.sfx.setZone(z); this.sparkle(W / 2, L.y, 40); }
     this.emitHud();
   }
 
@@ -210,12 +234,15 @@ export class Game {
   gameOver() {
     if (this.combo) this.endCombo();
     this.state = 'over'; this.shake = 10;
-    this.sfx.over();
+    this.sfx.over(); this.sfx.duckMusic();
+    const line = LOSE_LINES[Math.floor(Math.random() * LOSE_LINES.length)];
+    setTimeout(() => this.sfx.say(line), 450);
     const p = this.player;
     p.vy = 0; p.ground = this.floor;
-    this.camY = Math.min(this.camY, this.ledges[this.floor].y - H * 0.6);
+    this.camY = Math.min(this.camY, this.ledges[this.floor].y - this.vh * 0.6);
+    p.rot = 0; p.twirl = 1; p.trick = null;
     p.y = this.ledges[this.floor].y - p.h; p.x = Math.max(WALL, Math.min(W - WALL - p.w, this.ledges[this.floor].x + this.ledges[this.floor].w / 2 - p.w / 2));
-    this.onOver({ score: this.score, floor: this.maxFloor, bestCombo: this.bestCombo, zone: this.zone, zoneName: LEVELS[this.zone].name });
+    this.onOver({ score: this.score, floor: this.maxFloor, bestCombo: this.bestCombo, zone: this.zone, zoneName: LEVELS[this.zone].name, line });
   }
 
   emitHud() {
@@ -238,14 +265,15 @@ export class Game {
     const g = this.ctx, s = this.scale;
     g.setTransform(s, 0, 0, s, 0, 0);
     const shake = this.shake > 0.5 ? [rand(-this.shake, this.shake), rand(-this.shake, this.shake)] : [0, 0];
-    const height = Math.max(0, -this.camY) / GAP;   // floors climbed by the camera
-    drawSky(g, W, H, height, t);
-    drawBackdrop(g, W, H, this.camY, height, t);
-    g.save(); g.translate(shake[0], shake[1] - this.camY);
-    drawWalls(g, W, this.camY, H, WALL, height, (y) => levelOf(Math.floor((H - 40 - y) / GAP)), t);
-    for (const L of this.ledges) if (L && L.y - this.camY > -40 && L.y - this.camY < H + 60) drawLedge(g, L, t, height);
+    const vw = this.vw, vh = this.vh;
+    const height = Math.max(0, this.camY0 - this.camY) / GAP;   // floors climbed by the camera
+    drawSky(g, vw, vh, height, t);
+    drawBackdrop(g, vw, vh, this.camY - this.camY0, height, t);
+    g.save(); g.translate(this.ox + shake[0], shake[1] - this.camY);
+    drawWalls(g, W, this.camY, vh, WALL, height, (y) => levelOf(Math.floor((BASE - y) / GAP)), t);
+    for (const L of this.ledges) if (L && L.y - this.camY > -40 && L.y - this.camY < vh + 60) drawLedge(g, L, t, height);
     drawParticles(g, this.particles);
-    drawCharacter(g, this.player, t, this.state, this.character);
+    if (this.state !== 'menu') drawCharacter(g, this.player, t, this.state, this.character);
     for (const u of this.popups) {
       g.globalAlpha = Math.min(1, u.life * 2);
       g.font = '800 18px "DM Sans Variable", sans-serif'; g.textAlign = 'center';

@@ -2,12 +2,12 @@
 // stretches when it jumps, blinks, and looks the way it's moving.
 
 export const CHARACTERS = [
-  { id: 'blob', name: 'Blobby' },
-  { id: 'cat', name: 'Mau the cat' },
-  { id: 'scarab', name: 'Scarab' },
-  { id: 'camel', name: 'Baby camel' },
-  { id: 'mummy', name: 'Mini mummy' },
-  { id: 'fennec', name: 'Fennec fox' }
+  { id: 'blob', name: 'Mishmish', about: 'an apricot-sweet blob' },
+  { id: 'cat', name: 'Bosbos', about: 'a Cairo street cat' },
+  { id: 'scarab', name: 'Khepri', about: 'a lucky scarab' },
+  { id: 'camel', name: 'Gamal', about: 'a baby camel' },
+  { id: 'mummy', name: 'Tut', about: 'a tiny mummy' },
+  { id: 'fennec', name: 'Zizo', about: 'a desert fennec' }
 ];
 
 const INK = '#1a1030';
@@ -142,8 +142,13 @@ const DRAW = {
 // Draw any climber at its player position
 export function drawCharacter(g, p, t, state, id = 'blob') {
   const sq = p.squash, sx = 1 + sq * 0.5, sy = 1 - sq * 0.5;
-  g.save(); g.translate(p.x + p.w / 2, p.y + p.h); g.scale(sx, sy);
-  shadow(g, p.w);
+  g.save();
+  // spins rotate around the middle of the body; twirls squeeze it sideways like a pirouette
+  g.translate(p.x + p.w / 2, p.y + p.h / 2);
+  if (p.rot) g.rotate(p.rot);
+  g.scale(sx * (p.twirl ?? 1), sy);
+  g.translate(0, p.h / 2);
+  if (!p.air) shadow(g, p.w);
   const c = {
     look: Math.max(-1, Math.min(1, p.vx / 5)) * 3,
     up: p.vy < -2 ? -2 : p.vy > 3 ? 1.5 : 0,
