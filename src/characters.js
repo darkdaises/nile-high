@@ -3,7 +3,7 @@
 
 export const CHARACTERS = [
   { id: 'blob', name: 'Mishmish', about: 'an apricot-sweet blob' },
-  { id: 'cat', name: 'Bosbos', about: 'a Cairo street cat' },
+  { id: 'cat', name: 'Bosbos', about: 'a black street cat' },
   { id: 'scarab', name: 'Khepri', about: 'a lucky scarab' },
   { id: 'camel', name: 'Gamal', about: 'a baby camel' },
   { id: 'mummy', name: 'Tut', about: 'a tiny mummy' },
@@ -48,21 +48,23 @@ const DRAW = {
   },
 
   cat(g, w, h, c) {
-    // tail curling up behind
-    g.strokeStyle = '#a8946e'; g.lineWidth = 4; g.lineCap = 'round';
+    // a black Cairo street cat with golden eyes and a gold collar
+    g.strokeStyle = '#1b1820'; g.lineWidth = 4; g.lineCap = 'round';
     g.beginPath(); g.moveTo(-c.face * 12, -6); g.quadraticCurveTo(-c.face * 24, -14, -c.face * (20 + Math.sin(c.t * 5) * 3), -26); g.stroke();
-    g.fillStyle = grad(g, h, '#e3d3b0', '#b9a37c');
+    g.fillStyle = grad(g, h, '#36313f', '#141219');
     g.beginPath(); g.moveTo(-14, 0); g.quadraticCurveTo(-16, -h * 0.9, 0, -h); g.quadraticCurveTo(16, -h * 0.9, 14, 0); g.closePath(); g.fill();
-    // ears
     g.beginPath(); g.moveTo(-13, -h * 0.72); g.lineTo(-11, -h - 9); g.lineTo(-3, -h * 0.95); g.moveTo(13, -h * 0.72); g.lineTo(11, -h - 9); g.lineTo(3, -h * 0.95); g.fill();
-    g.fillStyle = '#f2a0a8'; g.beginPath(); g.moveTo(-11, -h * 0.86); g.lineTo(-10.5, -h - 4); g.lineTo(-6, -h * 0.96); g.moveTo(11, -h * 0.86); g.lineTo(10.5, -h - 4); g.lineTo(6, -h * 0.96); g.fill();
-    // spots
-    g.fillStyle = 'rgba(110,85,60,.35)'; for (const [x, y] of [[-9, -10], [8, -8], [-3, -5], [10, -17]]) { g.beginPath(); g.arc(x, y, 1.8, 0, Math.PI * 2); g.fill(); }
-    eyes(g, [-6, 6], -h * 0.6, c.look, c.up, c.blink, 4.6, 2.2, '#c8f07a');
-    g.fillStyle = '#e88a9a'; g.beginPath(); g.moveTo(c.look * 0.5 - 2, -h * 0.4); g.lineTo(c.look * 0.5 + 2, -h * 0.4); g.lineTo(c.look * 0.5, -h * 0.34); g.fill();
-    g.strokeStyle = 'rgba(60,40,30,.5)'; g.lineWidth = 0.8;
+    g.fillStyle = '#6a3f55'; g.beginPath(); g.moveTo(-11, -h * 0.86); g.lineTo(-10.5, -h - 4); g.lineTo(-6, -h * 0.96); g.moveTo(11, -h * 0.86); g.lineTo(10.5, -h - 4); g.lineTo(6, -h * 0.96); g.fill();
+    // a soft sheen so it reads on dark backgrounds
+    g.fillStyle = 'rgba(255,255,255,.12)'; g.beginPath(); g.ellipse(-6, -h * 0.78, 5, 2.5, -0.4, 0, Math.PI * 2); g.fill();
+    // golden eyes with slit pupils
+    for (const ex of [-6, 6]) {
+      g.fillStyle = '#ffcc3d'; g.beginPath(); g.ellipse(ex + c.look * 0.6, -h * 0.6 + c.up, 4.6, c.blink ? 0.9 : 5, 0, 0, Math.PI * 2); g.fill();
+      if (!c.blink) { g.fillStyle = INK; g.beginPath(); g.ellipse(ex + c.look, -h * 0.6 + c.up + 0.5, 1.4, 3.8, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = '#fff'; g.beginPath(); g.arc(ex + c.look + 1.4, -h * 0.6 + c.up - 1.6, 1, 0, Math.PI * 2); g.fill(); }
+    }
+    g.fillStyle = '#d86a86'; g.beginPath(); g.moveTo(c.look * 0.5 - 2, -h * 0.4); g.lineTo(c.look * 0.5 + 2, -h * 0.4); g.lineTo(c.look * 0.5, -h * 0.34); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 0.8;
     for (const s of [-1, 1]) for (const dy of [-1.5, 1.5]) { g.beginPath(); g.moveTo(s * 8, -h * 0.36 + dy); g.lineTo(s * 16, -h * 0.38 + dy * 1.6); g.stroke(); }
-    // golden collar with a blue bead
     g.fillStyle = '#f2c14e'; g.fillRect(-11, -h * 0.2, 22, 3.5);
     g.fillStyle = '#2e7ff0'; g.beginPath(); g.arc(0, -h * 0.2 + 4, 2.4, 0, Math.PI * 2); g.fill();
   },

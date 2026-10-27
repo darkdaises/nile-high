@@ -3,7 +3,7 @@
 // Once you start climbing the city scrolls up, and it speeds up every 30 seconds. Fall off the bottom and it's over.
 // Jumping two or more ledges at once starts a combo; keep chaining big jumps to grow it.
 
-import { Sfx, LOSE_LINES } from './sfx.js';
+import { Sfx } from './sfx.js';
 import { drawSky, drawBackdrop, drawWalls, drawLedge, drawParticles } from './draw.js';
 import { drawCharacter } from './characters.js';
 import { LEVELS, LEVEL_FLOORS, levelOf } from './levels.js';
@@ -235,14 +235,12 @@ export class Game {
     if (this.combo) this.endCombo();
     this.state = 'over'; this.shake = 10;
     this.sfx.over(); this.sfx.duckMusic();
-    const line = LOSE_LINES[Math.floor(Math.random() * LOSE_LINES.length)];
-    setTimeout(() => this.sfx.say(line), 450);
     const p = this.player;
     p.vy = 0; p.ground = this.floor;
     this.camY = Math.min(this.camY, this.ledges[this.floor].y - this.vh * 0.6);
     p.rot = 0; p.twirl = 1; p.trick = null;
     p.y = this.ledges[this.floor].y - p.h; p.x = Math.max(WALL, Math.min(W - WALL - p.w, this.ledges[this.floor].x + this.ledges[this.floor].w / 2 - p.w / 2));
-    this.onOver({ score: this.score, floor: this.maxFloor, bestCombo: this.bestCombo, zone: this.zone, zoneName: LEVELS[this.zone].name, line });
+    this.onOver({ score: this.score, floor: this.maxFloor, bestCombo: this.bestCombo, zone: this.zone, zoneName: LEVELS[this.zone].name });
   }
 
   emitHud() {

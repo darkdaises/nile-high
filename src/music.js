@@ -166,35 +166,93 @@ export class Music {
     }
   }
 
-  // ---------- zaghrouta: the joyful ululation ("lililili") for a new level ----------
+  // ---------- zaghrouta ----------
+  // A real zaghrouta: a high, steady voice that opens with a held "aaai", then the tongue flutters side to side
+  // ("lu-li-lu-li") about 15 times a second. The flutter changes the vowel and briefly closes the sound (the "l"),
+  // while the pitch barely moves. A few women join in slightly apart, like at a wedding.
   zaghrouta(out) {
-    const c = this.ctx, t = c.currentTime + 0.05, dur = 2.1;
-    const voice = (detune, pan, vol) => {
-      const o = c.createOscillator(), f1 = c.createBiquadFilter(), f2 = c.createBiquadFilter(), g = c.createGain();
-      o.type = 'sawtooth';
-      // an opening "aaa", then the rapid tongue trill gliding up
-      o.frequency.setValueAtTime(880, t); o.frequency.linearRampToValueAtTime(1020, t + 0.28);
-      o.frequency.linearRampToValueAtTime(1180, t + dur * 0.7); o.frequency.linearRampToValueAtTime(1080, t + dur);
-      o.detune.value = detune;
-      const trill = c.createOscillator(), tg = c.createGain();
-      trill.type = 'square'; trill.frequency.setValueAtTime(11, t); trill.frequency.linearRampToValueAtTime(14, t + dur);
-      tg.gain.setValueAtTime(0, t); tg.gain.setValueAtTime(0, t + 0.28); tg.gain.linearRampToValueAtTime(110, t + 0.36);
-      trill.connect(tg); tg.connect(o.frequency);
-      // the "l" in "lililili": quick dips in loudness in time with the trill
-      const am = c.createOscillator(), ag = c.createGain(), base = c.createGain();
-      am.frequency.setValueAtTime(11, t); am.frequency.linearRampToValueAtTime(14, t + dur);
-      ag.gain.setValueAtTime(0, t); ag.gain.setValueAtTime(0, t + 0.28); ag.gain.linearRampToValueAtTime(0.45, t + 0.36);
-      base.gain.value = 0.55; am.connect(ag); ag.connect(base.gain);
-      f1.type = 'bandpass'; f1.frequency.value = 1150; f1.Q.value = 5;
-      f2.type = 'bandpass'; f2.frequency.value = 2900; f2.Q.value = 6;
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.08); g.gain.setValueAtTime(vol, t + dur - 0.35); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      const mixf = c.createGain(); mixf.gain.value = 1;
-      o.connect(base); base.connect(f1); base.connect(f2); f1.connect(mixf); f2.connect(mixf); mixf.connect(g);
+    const c = this.ctx, t0 = c.currentTime + 0.05;
+    const shape = c.createWaveShaper(), curve = new Float32Array(256);
+    for (let i = 0; i < 256; i++) { const x = (i / 255) * 2 - 1; curve[i] = Math.tanh(3.2 * x); }   // rounded square: open-close-open
+    shape.curve = curve;
+
+    const voice = (delay, f0, rate, dur, pan, vol) => {
+      const t = t0 + delay, open = 0.42, end = t + dur;
+      // the voice: a bright buzzy source with a little breath and natural vibrato
+      const src = c.createOscillator(); src.type = 'sawtooth';
+      src.frequency.setValueAtTime(f0 * 0.86, t); src.frequency.exponentialRampToValueAtTime(f0, t + open);
+      src.frequency.linearRampToValueAtTime(f0 * 1.04, end - 0.3); src.frequency.exponentialRampToValueAtTime(f0 * 0.9, end);
+      const vib = c.createOscillator(), vg = c.createGain(); vib.frequency.value = 5.5; vg.gain.value = f0 * 0.012; vib.connect(vg); vg.connect(src.frequency);
+      // the tongue: one oscillator drives the "l" closures, the vowel change and a tiny pitch wobble together
+      const tongue = c.createOscillator(); tongue.type = 'sine';
+      tongue.frequency.setValueAtTime(rate * 0.8, t + open); tongue.frequency.linearRampToValueAtTime(rate, t + open + 0.3); tongue.frequency.linearRampToValueAtTime(rate * 1.08, end);
+      const depth = c.createGain(); depth.gain.setValueAtTime(0, t); depth.gain.setValueAtTime(0, t + open - 0.05); depth.gain.linearRampToValueAtTime(1, t + open + 0.12);
+      tongue.connect(depth);
+      const sq = c.createWaveShaper(); sq.curve = curve; depth.connect(sq);
+      // loudness: steady, with quick dips on each "l"
+      const amp = c.createGain(); amp.gain.value = 0.62;
+      const ampMod = c.createGain(); ampMod.gain.value = 0.38; sq.connect(ampMod); ampMod.connect(amp.gain);
+      // vowel: second formant swings between "u" (~1100 Hz) and "i" (~2900 Hz) with the tongue
+      const f1 = c.createBiquadFilter(); f1.type = 'bandpass'; f1.frequency.value = f0 * 1.05; f1.Q.value = 2.2;
+      const f2 = c.createBiquadFilter(); f2.type = 'bandpass'; f2.frequency.value = 2000; f2.Q.value = 3.5;
+      const f2Mod = c.createGain(); f2Mod.gain.value = 900; sq.connect(f2Mod); f2Mod.connect(f2.frequency);
+      const f3 = c.createBiquadFilter(); f3.type = 'bandpass'; f3.frequency.value = 3600; f3.Q.value = 5;
+      const pw = c.createGain(); pw.gain.value = f0 * 0.02; sq.connect(pw); pw.connect(src.frequency);
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.06); g.gain.setValueAtTime(vol, end - 0.25); g.gain.exponentialRampToValueAtTime(0.0001, end);
+      const g1 = c.createGain(), g2 = c.createGain(), g3 = c.createGain(); g1.gain.value = 1; g2.gain.value = 0.85; g3.gain.value = 0.35;
+      src.connect(amp); amp.connect(f1); amp.connect(f2); amp.connect(f3); f1.connect(g1); f2.connect(g2); f3.connect(g3);
+      for (const x of [g1, g2, g3]) x.connect(g);
       const p = c.createStereoPanner ? c.createStereoPanner() : null;
       if (p) { p.pan.value = pan; g.connect(p); p.connect(out); } else g.connect(out);
       g.connect(this.verbIn);
-      for (const n of [o, trill, am]) { n.start(t); n.stop(t + dur + 0.05); }
+      for (const n of [src, vib, tongue]) { n.start(t); n.stop(end + 0.05); }
     };
-    voice(0, -0.25, 0.5); voice(18, 0.3, 0.38); voice(-24, 0, 0.3);
+    voice(0.0, 1046, 15.5, 2.8, -0.2, 0.3);
+    voice(0.18, 988, 14.2, 2.7, 0.35, 0.22);
+    voice(0.35, 1108, 16.4, 2.5, 0.05, 0.17);
+  }
+
+  // ---------- tabla "wahda w nos" flourish for a combo ----------
+  //            dum  -   -   tak  -   tak  dum  -   tak  -   -   -   then a quick roll
+  wahdaWNos(out) {
+    const c = this.ctx, t0 = c.currentTime + 0.03, s = 60 / 132 / 2;
+    const pat = ['D', '', '', 'T', '', 'T', 'D', '', 'T', '', 'K', 'K', 'D'];
+    pat.forEach((h, i) => {
+      const t = t0 + i * s;
+      if (h === 'D') this.tablaDum(t, out);
+      if (h === 'T') this.tablaTak(t, out, 0.55);
+      if (h === 'K') { this.tablaTak(t, out, 0.35); this.tablaTak(t + s / 2, out, 0.3); }
+    });
+  }
+  tablaDum(t, out) {
+    const c = this.ctx, o = c.createOscillator(), g = c.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(64, t + 0.2);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.6, t + 0.005); g.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
+    o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.45);
+  }
+  tablaTak(t, out, level) {   // the bright ringing "tek" on the rim
+    const c = this.ctx;
+    const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = this.white; f.type = 'bandpass'; f.frequency.value = 3400; f.Q.value = 2;
+    g.gain.setValueAtTime(level, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+    src.connect(f); f.connect(g); g.connect(out); src.start(t, Math.random()); src.stop(t + 0.07);
+    const o = c.createOscillator(), og = c.createGain(); o.type = 'sine'; o.frequency.value = 1180;
+    og.gain.setValueAtTime(level * 0.5, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    o.connect(og); og.connect(out); o.start(t); o.stop(t + 0.14);
+  }
+
+  // ---------- falling: a cartoon slide whistle, then a soft thud ----------
+  fall(out) {
+    const c = this.ctx, t = c.currentTime + 0.02, dur = 1.0;
+    const o = c.createOscillator(), g = c.createGain(), vib = c.createOscillator(), vg = c.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(1500, t); o.frequency.exponentialRampToValueAtTime(220, t + dur);
+    vib.frequency.value = 9; vg.gain.value = 18; vib.connect(vg); vg.connect(o.frequency);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.32, t + 0.04); g.gain.setValueAtTime(0.32, t + dur - 0.15); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(out); o.start(t); vib.start(t); o.stop(t + dur + 0.05); vib.stop(t + dur + 0.05);
+    const th = c.createOscillator(), tg = c.createGain(), tt = t + dur + 0.05;
+    th.type = 'sine'; th.frequency.setValueAtTime(120, tt); th.frequency.exponentialRampToValueAtTime(45, tt + 0.25);
+    tg.gain.setValueAtTime(0.0001, tt); tg.gain.exponentialRampToValueAtTime(0.5, tt + 0.008); tg.gain.exponentialRampToValueAtTime(0.001, tt + 0.35);
+    th.connect(tg); tg.connect(out); th.start(tt); th.stop(tt + 0.4);
   }
 }

@@ -124,7 +124,6 @@ export default function App() {
               ))}
             </div>
             <button className="go" onClick={play}>
-              <span className="go-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l11-6.5a1 1 0 0 0 0-1.72l-11-6.5A1 1 0 0 0 8 5.5z" /></svg></span>
               Play
             </button>
             <p className="keys">{touch.current ? 'Hold ◀ ▶ to run, tap ▲ to jump.' : 'Arrows or A / D to run, Space to jump.'} Run fast for bigger jumps and flips, bounce off walls, and jump 2+ floors for combos.</p>
@@ -137,9 +136,6 @@ export default function App() {
         <div className="overlay">
           <div className="col sheet over">
             <p className="kicker">{newBest ? 'New best!' : 'You fell off the roof'}</p>
-            {result.line && (
-              <p className="arabic" lang="ar" dir="rtl">{result.line.ar} <span lang="en" dir="ltr">{result.line.tr} · {result.line.en}</span></p>
-            )}
             <h2>Floor {result.floor}</h2>
             <p className="reached">Reached level {result.zone + 1}: {result.zoneName}</p>
             <div className="results">
@@ -157,7 +153,6 @@ export default function App() {
             </div>
             <div className="row">
               <button className="go" onClick={play}>
-                <span className="go-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.6-5.9" /><path d="M4 4v4.5h4.5" /></svg></span>
                 Play again
               </button>
               <button className="ghost" onClick={share} aria-label="Share your score">
