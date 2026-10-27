@@ -132,8 +132,16 @@ export default function App() {
               <p className="reached">Reached level {result.zone + 1}: {result.zoneName}</p>
               <div className="results">
                 <div><small>Score</small><b>{result.score}</b></div>
-                <div><small>Best combo</small><b>{result.bestCombo || 0}</b></div>
+                <div><small>Combo</small><b>{result.bestCombo || 0}</b></div>
                 <div><small>Best</small><b>{best ? best.score : result.score}</b></div>
+              </div>
+              <p className="pick-label">Switch climber</p>
+              <div className="chars mini" role="radiogroup" aria-label="Switch climber">
+                {CHARACTERS.map((c) => (
+                  <button key={c.id} role="radio" aria-checked={character === c.id} className={character === c.id ? 'on' : ''} onClick={() => pick(c.id)} aria-label={c.name} title={c.name}>
+                    <Preview id={c.id} active={character === c.id} />
+                  </button>
+                ))}
               </div>
               <div className="row">
                 <button className="go" onClick={play}>
