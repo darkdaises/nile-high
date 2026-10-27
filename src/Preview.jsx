@@ -15,7 +15,7 @@ export default function Preview({ id, active }) {
       // selected climber: a small, slow hop about once a second, resting on the ground in between
       if (live.current) {
         if (p.y + p.h < floor || p.vy < 0) { p.vy += 0.22; p.y += p.vy; if (p.y + p.h >= floor) { p.y = floor - p.h; p.vy = 0; p.squash = 0.22; rest = t; } }
-        else if (t - rest > 0.7) { p.vy = -3.4; p.squash = -0.15; }
+        else if (t - rest > 0.7) { p.vy = -2.6; p.squash = -0.12; }
       } else { p.y = floor - p.h; p.vy = 0; }
       p.squash *= 0.82; p.vx = Math.sin(t * 1.3) * 3; p.blink = (t % 3.2) < 0.12 ? 1 : 0; p.face = p.vx >= 0 ? 1 : -1;
       g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, 72, 64);
