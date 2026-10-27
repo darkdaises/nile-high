@@ -1,4 +1,4 @@
-# Rooftop Hop
+# Nile High
 
 An endless climb from the rooftops of Cairo to the pyramids and the stars. A tiny game by [Gigi Mostafa](https://gigimostafa.com).
 

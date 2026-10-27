@@ -64,10 +64,10 @@ export default function App() {
 
   async function share() {
     const who = CHARACTERS.find((c) => c.id === character)?.name || 'my climber';
-    const text = `I climbed ${result.floor} floors with ${who} in Rooftop Hop, all the way to ${result.zoneName} (score ${result.score}). Can you beat it?`;
-    const url = 'https://hop.gigimostafa.com';
+    const text = `I climbed ${result.floor} floors with ${who} in Nile High, all the way to ${result.zoneName} (score ${result.score}). Can you beat it?`;
+    const url = 'https://nilehigh.gigimostafa.com';
     try {
-      if (navigator.share && touch.current) await navigator.share({ title: 'Rooftop Hop', text, url });
+      if (navigator.share && touch.current) await navigator.share({ title: 'Nile High', text, url });
       else { await navigator.clipboard.writeText(`${text} ${url}`); setCopied(true); setTimeout(() => setCopied(false), 1800); }
     } catch (e) {}
   }
@@ -77,7 +77,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="top">
-        <div className="brand"><span className="logo" aria-hidden="true" /> Rooftop Hop</div>
+        <div className="brand"><span className="logo" aria-hidden="true" /> Nile High</div>
         <div className="top-right">
           <button className="icon" onClick={toggleMute} aria-label={muted ? 'Sound on' : 'Mute'}>
             {muted ? <svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" /><path d="M17 9l4 6M21 9l-4 6" /></svg>
@@ -106,7 +106,7 @@ export default function App() {
           {screen === 'menu' && (
             <div className="overlay menu">
               <p className="kicker">An endless climb over Cairo</p>
-              <h1>Rooftop<br />Hop</h1>
+              <h1>Nile<br />High</h1>
               <p className="pick-label">Choose your climber</p>
               <div className="chars" role="radiogroup" aria-label="Choose your climber">
                 {CHARACTERS.map((c) => (

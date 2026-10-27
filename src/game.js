@@ -1,4 +1,4 @@
-// Rooftop Hop: an endless climb up the rooftops of Cairo.
+// Nile High: an endless climb from the rooftops of Cairo to the pyramids and the stars.
 // Run to build speed, and the faster you run the higher you jump. Bounce off the walls.
 // Once you start climbing the city scrolls up, and it speeds up every 30 seconds. Fall off the bottom and it's over.
 // Jumping two or more ledges at once starts a combo; keep chaining big jumps to grow it.
