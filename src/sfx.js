@@ -3,7 +3,7 @@
 import { Music } from './music.js';
 
 // Voice lines, cut from Gigi's ElevenLabs take (Haytham). [shown on screen, clip in public/voice]
-// Not every combo gets one: about 4 in 10 do, never the same line twice in a row.
+// The first two combos of each game get one (starting with Ya gamed), then about 4 in 10; never the same line twice in a row.
 // "Damn" plays now and then when you fall.
 const VOICE_V = 5;   // bump when the clips change, so phones and browsers don't keep playing the old ones
 const HYPE = [
@@ -18,7 +18,7 @@ const CLIPS = [...HYPE.map((h) => h[1]), 'damn'];
 
 export class Sfx {
   constructor() {
-    this.ctx = null; this.prevHype = -1;
+    this.ctx = null; this.prevHype = -1; this.combos = 0;
     try { this.muted = localStorage.getItem('hop-muted') === '1'; } catch (e) { this.muted = false; }
   }
 
@@ -57,8 +57,10 @@ export class Sfx {
   // landing a combo: a hype line
   comboEnd() {
     this.tone(660, 0.1, { type: 'triangle', vol: 0.2 }); this.tone(990, 0.16, { type: 'triangle', vol: 0.16, delay: 0.07 });
-    if (Math.random() > 0.4) return null;
-    let i = Math.floor(Math.random() * HYPE.length);
+    // the first two combos of a game always get a line, and the very first is "Ya gamed!"
+    const n = this.combos++;
+    if (n >= 2 && Math.random() > 0.4) return null;
+    let i = n === 0 ? 0 : Math.floor(Math.random() * HYPE.length);
     if (i === this.prevHype) i = (i + 1) % HYPE.length;
     this.prevHype = i;
     const [text, clip] = HYPE[i];

@@ -87,6 +87,7 @@ export class Game {
     this.reset();
     this.state = 'playing';
     this.sfx.unlock();
+    this.sfx.combos = 0;
     this.sfx.startMusic(0);
   }
 
