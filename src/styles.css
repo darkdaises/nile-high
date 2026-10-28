@@ -137,7 +137,11 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
   .menu .kicker { display: none; }
   .sheet.menu > h1.title { margin-top: auto; }
   .menu .record { padding: 10px 14px; margin-bottom: 14px; }
-  .menu .rec-text { flex-direction: row; align-items: baseline; gap: 8px; }
+  .menu .record { align-items: center; }
+  .menu .rec-text { flex-direction: row; align-items: center; gap: 8px; line-height: 1; }
+  .menu .rec-text b { line-height: 1; }
+  .menu .rec-tower { height: 30px; }
+  .sheet.menu > h1.title { font-size: calc((var(--col) - 36px) / 5.85); margin-bottom: 24px; }
   .menu .rec-text small { font-size: 10.5px; }
   .menu .rec-text b { font-size: 20px; }
   .menu .rec-text span { display: none; }
