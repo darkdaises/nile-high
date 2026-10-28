@@ -3,7 +3,9 @@
 //  - an oud-like pluck improvising in maqam Hijaz on D
 //  - a soft low drone
 //  - ambience that changes with the level: Cairo traffic and horns, desert wind, a temple hum, Nile crickets
-// Plus the zaghrouta (celebratory ululation) for reaching a new level.
+// Plus the zaghrouta for reaching a new level and a darbuka solo for combos (drums and voices come from samples.js).
+
+import { makeDarbuka, makeZaghrouta } from './samples.js';
 
 const midi = (n) => 440 * Math.pow(2, (n - 69) / 12);
 // Hijaz on D: D Eb F# G A Bb C D
@@ -24,6 +26,7 @@ export class Music {
     for (let i = 0; i < len; i++) { const w = Math.random() * 2 - 1; b = (b + 0.02 * w) / 1.02; d[i] = b * 3.5; }   // brown-ish noise
     this.white = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
     const wd = this.white.getChannelData(0); for (let i = 0; i < wd.length; i++) wd[i] = Math.random() * 2 - 1;
+    this.kit = makeDarbuka(ctx);
     this.zone = -1; this.playing = false; this.step = 0; this.note = 4; this.bpm = 104;
   }
 
@@ -63,21 +66,17 @@ export class Music {
     }
   }
 
-  dum(t) {
-    const c = this.ctx, o = c.createOscillator(), g = c.createGain();
-    o.type = 'sine'; o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(52, t + 0.18);
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.7, t + 0.006); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-    o.connect(g); g.connect(this.bus); o.start(t); o.stop(t + 0.4);
+  // one darbuka stroke from the sampled kit (a random take, slight level and tuning changes)
+  hit(kind, t, level, out = this.bus) {
+    const c = this.ctx, takes = this.kit[kind], src = c.createBufferSource(), g = c.createGain();
+    src.buffer = takes[Math.floor(Math.random() * takes.length)];
+    src.playbackRate.value = 1 + (Math.random() - 0.5) * 0.02;
+    g.gain.value = level * (0.9 + Math.random() * 0.2);
+    src.connect(g); g.connect(out); src.start(t);
+    return g;
   }
-  tak(t, level) {
-    const c = this.ctx, src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
-    src.buffer = this.white; f.type = 'bandpass'; f.frequency.value = 2600; f.Q.value = 1.4;
-    g.gain.setValueAtTime(level, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
-    src.connect(f); f.connect(g); g.connect(this.bus); src.start(t, Math.random()); src.stop(t + 0.09);
-    const o = c.createOscillator(), og = c.createGain(); o.type = 'triangle'; o.frequency.value = 820;
-    og.gain.setValueAtTime(level * 0.35, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
-    o.connect(og); og.connect(this.bus); o.start(t); o.stop(t + 0.06);
-  }
+  dum(t) { this.hit('doum', t, 0.75); }
+  tak(t, level) { this.hit(level > 0.3 ? 'tek' : 'ka', t, level * 1.2); }
   drone(t, len) {
     const c = this.ctx, g = c.createGain(), f = c.createBiquadFilter();
     f.type = 'lowpass'; f.frequency.value = 500;
@@ -167,79 +166,38 @@ export class Music {
   }
 
   // ---------- zaghrouta ----------
-  // A real zaghrouta: a high, steady voice that opens with a held "aaai", then the tongue flutters side to side
-  // ("lu-li-lu-li") about 15 times a second. The flutter changes the vowel and briefly closes the sound (the "l"),
-  // while the pitch barely moves. A few women join in slightly apart, like at a wedding.
+  // ---------- the zaghrouta for a new level ----------
+  // Rendered once (see samples.js): a few women's voices, held "aaai" then the fast "li-li-li" tongue trill.
   zaghrouta(out) {
-    const c = this.ctx, t0 = c.currentTime + 0.05;
-    const shape = c.createWaveShaper(), curve = new Float32Array(256);
-    for (let i = 0; i < 256; i++) { const x = (i / 255) * 2 - 1; curve[i] = Math.tanh(3.2 * x); }   // rounded square: open-close-open
-    shape.curve = curve;
-
-    const voice = (delay, f0, rate, dur, pan, vol) => {
-      const t = t0 + delay, open = 0.42, end = t + dur;
-      // the voice: a bright buzzy source with a little breath and natural vibrato
-      const src = c.createOscillator(); src.type = 'sawtooth';
-      src.frequency.setValueAtTime(f0 * 0.86, t); src.frequency.exponentialRampToValueAtTime(f0, t + open);
-      src.frequency.linearRampToValueAtTime(f0 * 1.04, end - 0.3); src.frequency.exponentialRampToValueAtTime(f0 * 0.9, end);
-      const vib = c.createOscillator(), vg = c.createGain(); vib.frequency.value = 5.5; vg.gain.value = f0 * 0.012; vib.connect(vg); vg.connect(src.frequency);
-      // the tongue: one oscillator drives the "l" closures, the vowel change and a tiny pitch wobble together
-      const tongue = c.createOscillator(); tongue.type = 'sine';
-      tongue.frequency.setValueAtTime(rate * 0.8, t + open); tongue.frequency.linearRampToValueAtTime(rate, t + open + 0.3); tongue.frequency.linearRampToValueAtTime(rate * 1.08, end);
-      const depth = c.createGain(); depth.gain.setValueAtTime(0, t); depth.gain.setValueAtTime(0, t + open - 0.05); depth.gain.linearRampToValueAtTime(1, t + open + 0.12);
-      tongue.connect(depth);
-      const sq = c.createWaveShaper(); sq.curve = curve; depth.connect(sq);
-      // loudness: steady, with quick dips on each "l"
-      const amp = c.createGain(); amp.gain.value = 0.62;
-      const ampMod = c.createGain(); ampMod.gain.value = 0.38; sq.connect(ampMod); ampMod.connect(amp.gain);
-      // vowel: second formant swings between "u" (~1100 Hz) and "i" (~2900 Hz) with the tongue
-      const f1 = c.createBiquadFilter(); f1.type = 'bandpass'; f1.frequency.value = f0 * 1.05; f1.Q.value = 2.2;
-      const f2 = c.createBiquadFilter(); f2.type = 'bandpass'; f2.frequency.value = 2000; f2.Q.value = 3.5;
-      const f2Mod = c.createGain(); f2Mod.gain.value = 900; sq.connect(f2Mod); f2Mod.connect(f2.frequency);
-      const f3 = c.createBiquadFilter(); f3.type = 'bandpass'; f3.frequency.value = 3600; f3.Q.value = 5;
-      const pw = c.createGain(); pw.gain.value = f0 * 0.02; sq.connect(pw); pw.connect(src.frequency);
-      const g = c.createGain();
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.06); g.gain.setValueAtTime(vol, end - 0.25); g.gain.exponentialRampToValueAtTime(0.0001, end);
-      const g1 = c.createGain(), g2 = c.createGain(), g3 = c.createGain(); g1.gain.value = 1; g2.gain.value = 0.85; g3.gain.value = 0.35;
-      src.connect(amp); amp.connect(f1); amp.connect(f2); amp.connect(f3); f1.connect(g1); f2.connect(g2); f3.connect(g3);
-      for (const x of [g1, g2, g3]) x.connect(g);
-      const p = c.createStereoPanner ? c.createStereoPanner() : null;
-      if (p) { p.pan.value = pan; g.connect(p); p.connect(out); } else g.connect(out);
-      g.connect(this.verbIn);
-      for (const n of [src, vib, tongue]) { n.start(t); n.stop(end + 0.05); }
-    };
-    voice(0.0, 1046, 15.5, 2.8, -0.2, 0.3);
-    voice(0.18, 988, 14.2, 2.7, 0.35, 0.22);
-    voice(0.35, 1108, 16.4, 2.5, 0.05, 0.17);
+    const c = this.ctx, t = c.currentTime + 0.05;
+    if (!this.zBuf) this.zBuf = makeZaghrouta(c);
+    const src = c.createBufferSource(), g = c.createGain();
+    src.buffer = this.zBuf; g.gain.value = 0.42;
+    src.connect(g); g.connect(out);
+    const w = c.createGain(); w.gain.value = 0.5; g.connect(w); w.connect(this.verbIn);   // a room around it
+    src.start(t);
   }
 
-  // ---------- tabla "wahda w nos" flourish for a combo ----------
-  //            dum  -   -   tak  -   tak  dum  -   tak  -   -   -   then a quick roll
+  // ---------- darbuka solo for landing a combo ----------
+  // A short Egyptian-style flourish: a rolled lead-in (tek-ka-tek-ka getting louder), then the
+  // "wahda w nos" phrase  DOUM . tek-ka tek . DOUM . tek-ka-tek-ka  and a final DOUM.
   wahdaWNos(out) {
-    const c = this.ctx, t0 = c.currentTime + 0.03, s = 60 / 132 / 2;
-    const pat = ['D', '', '', 'T', '', 'T', 'D', '', 'T', '', 'K', 'K', 'D'];
+    const c = this.ctx, t0 = c.currentTime + 0.03, s = 60 / 120 / 4;   // sixteenth notes at 120
+    const bus = c.createGain(); bus.gain.value = 0.62; bus.connect(out);
+    const room = c.createGain(); room.gain.value = 0.25; bus.connect(room); room.connect(this.verbIn);
+    // lead-in roll: 8 strokes in thirty-seconds, crescendo
+    for (let i = 0; i < 8; i++) this.hit(i % 2 ? 'ka' : 'tek', t0 + i * s / 2, 0.25 + i * 0.07, bus);
+    const t1 = t0 + 4 * s;
+    //            1          e     &      a     2      e     &      a     3     e      &     a     4     e     &     a
+    const pat = ['D', '', 'k', 't', '', 'D', '', 't', 'D', 'k', 't', 'k', 't', 'k', 't', 'k', 'D'];
     pat.forEach((h, i) => {
-      const t = t0 + i * s;
-      if (h === 'D') this.tablaDum(t, out);
-      if (h === 'T') this.tablaTak(t, out, 0.55);
-      if (h === 'K') { this.tablaTak(t, out, 0.35); this.tablaTak(t + s / 2, out, 0.3); }
+      const t = t1 + i * s;
+      if (h === 'D') this.hit('doum', t, 1, bus);
+      if (h === 't') this.hit('tek', t, i > 11 ? 0.55 + (i - 11) * 0.08 : 0.8, bus);
+      if (h === 'k') this.hit('ka', t, 0.55, bus);
     });
-  }
-  tablaDum(t, out) {
-    const c = this.ctx, o = c.createOscillator(), g = c.createGain();
-    o.type = 'sine'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(64, t + 0.2);
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.6, t + 0.005); g.gain.exponentialRampToValueAtTime(0.001, t + 0.42);
-    o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.45);
-  }
-  tablaTak(t, out, level) {   // the bright ringing "tek" on the rim
-    const c = this.ctx;
-    const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
-    src.buffer = this.white; f.type = 'bandpass'; f.frequency.value = 3400; f.Q.value = 2;
-    g.gain.setValueAtTime(level, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
-    src.connect(f); f.connect(g); g.connect(out); src.start(t, Math.random()); src.stop(t + 0.07);
-    const o = c.createOscillator(), og = c.createGain(); o.type = 'sine'; o.frequency.value = 1180;
-    og.gain.setValueAtTime(level * 0.5, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
-    o.connect(og); og.connect(out); o.start(t); o.stop(t + 0.14);
+    // a tek on top of the last doum, the way players "close" a phrase
+    this.hit('tek', t1 + 16 * s, 0.9, bus);
   }
 
   // ---------- falling: a cartoon slide whistle, then a soft thud ----------

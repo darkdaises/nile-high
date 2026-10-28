@@ -23,6 +23,7 @@ export class Game {
     this.canvas = canvas; this.ctx = canvas.getContext('2d');
     this.onHud = onHud; this.onOver = onOver;
     this.keys = { left: false, right: false, jump: false };
+    this.tilt = 0;                 // -1..1 from tilting the phone (0 when not used)
     this.sfx = new Sfx();
     this.resize();
     this.reset();
@@ -117,6 +118,12 @@ export class Game {
     const accel = p.air ? AIR : RUN;
     if (k.left && !k.right) { p.vx -= accel; p.face = -1; }
     else if (k.right && !k.left) { p.vx += accel; p.face = 1; }
+    else if (this.tilt) {
+      // phone tilt is analog: lean a little to walk, lean more to sprint
+      const target = MAXV * this.tilt;
+      p.vx += Math.max(-accel, Math.min(accel, target - p.vx));
+      if (Math.abs(this.tilt) > 0.15) p.face = this.tilt < 0 ? -1 : 1;
+    }
     else if (!p.air) p.vx *= FRICTION;
     p.vx = Math.max(-MAXV, Math.min(MAXV, p.vx));
 
