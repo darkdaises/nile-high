@@ -3,7 +3,9 @@
   --col: min(100vw, calc(100dvh * 400 / 720)); color-scheme: dark; }
 * { box-sizing: border-box; }
 html, body, #root { min-height: 100%; }
-body { margin: 0; color: var(--ink); background: #2a1430; font-family: "DM Sans Variable", system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow: hidden; overscroll-behavior: none; }
+body { margin: 0; color: var(--ink); background: #2a1430; font-family: "DM Sans Variable", system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: clip; overscroll-behavior: none; }
+/* no inner scroll box: the page itself is the screen, so Safari floats its toolbar over the game */
+html { overscroll-behavior: none; }
 button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
 /* fill the whole phone screen, also behind the browser's bottom toolbar; --under is the covered strip */
