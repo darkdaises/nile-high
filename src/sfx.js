@@ -2,24 +2,23 @@
 // One mute switch covers everything, and it's remembered per device.
 import { Music } from './music.js';
 
-// [shown on screen, voice clip in public/voice]. Yalla / Oppa / Eshta awi are cut from an ElevenLabs take (Haytham);
-// the others use a similar warm, energetic male voice.
-// Each game opens with Yalla, Oppa, Eshta awi in order, then mixes in the rest.
-// bump when the clips change, so phones and browsers don't keep playing the old ones
-const VOICE_V = 4;
+// Voice lines, cut from Gigi's ElevenLabs take (Haytham). [shown on screen, clip in public/voice]
+// Not every combo gets one: about 4 in 10 do, never the same line twice in a row.
+// "Damn" plays now and then when you fall.
+const VOICE_V = 5;   // bump when the clips change, so phones and browsers don't keep playing the old ones
 const HYPE = [
-  ['Yalla!', 'yalla'],
-  ['Oppa!', 'oppa'],
-  ['Eshta awi!', 'eshta'],
+  ['Ya gamed!', 'gamed'],
+  ["Aiwa ba'a ya wala!", 'aiwa'],
+  ['Yanhar abyad!', 'abyad'],
+  ['You got this!', 'gotthis'],
   ['Yalla beena!', 'beena'],
-  ['Hell yeah!', 'hell'],
-  ["Let's gooo!", 'gooo'],
-  ['Habibi, fly!', 'habibi']
+  ['Hell yeah!', 'hell']
 ];
+const CLIPS = [...HYPE.map((h) => h[1]), 'damn'];
 
 export class Sfx {
   constructor() {
-    this.ctx = null; this.lastHype = 0;
+    this.ctx = null; this.prevHype = -1;
     try { this.muted = localStorage.getItem('hop-muted') === '1'; } catch (e) { this.muted = false; }
   }
 
@@ -57,31 +56,37 @@ export class Sfx {
   combo(n) { const f = 520 * Math.pow(1.12246, Math.min(n, 10)); this.tone(f, 0.12, { type: 'triangle', vol: 0.3 }); this.tone(f * 1.5, 0.14, { type: 'sine', vol: 0.18, delay: 0.05 }); }
   // landing a combo: a hype line
   comboEnd() {
-    const n = this.lastHype++;
-    let i = n < 3 ? n : Math.floor(Math.random() * HYPE.length);
-    if (n >= 3 && i === this.prevHype) i = (i + 1) % HYPE.length;
+    this.tone(660, 0.1, { type: 'triangle', vol: 0.2 }); this.tone(990, 0.16, { type: 'triangle', vol: 0.16, delay: 0.07 });
+    if (Math.random() > 0.4) return null;
+    let i = Math.floor(Math.random() * HYPE.length);
+    if (i === this.prevHype) i = (i + 1) % HYPE.length;
     this.prevHype = i;
     const [text, clip] = HYPE[i];
-    this.tone(660, 0.1, { type: 'triangle', vol: 0.2 }); this.tone(990, 0.16, { type: 'triangle', vol: 0.16, delay: 0.07 });
-    const buf = this.voices && this.voices[clip];
-    if (buf) {
-      const src = this.ctx.createBufferSource(), g = this.ctx.createGain();
-      src.buffer = buf; g.gain.value = 0.9; src.connect(g); g.connect(this.master); src.start(this.ctx.currentTime + 0.05);
-    }
+    this.say(clip, 0.05);
     return text;
+  }
+  say(clip, delay = 0) {
+    const buf = this.voices && this.voices[clip];
+    if (!buf) return;
+    const src = this.ctx.createBufferSource(), g = this.ctx.createGain();
+    src.buffer = buf; g.gain.value = 0.9; src.connect(g); g.connect(this.master); src.start(this.ctx.currentTime + delay);
   }
   loadVoices() {
     this.voices = {};
     const base = import.meta.env.BASE_URL;
-    for (const [, clip] of HYPE) {
+    for (const clip of CLIPS) {
       fetch(`${base}voice/${clip}.mp3?v=${VOICE_V}`, { cache: "no-cache" }).then((r) => r.arrayBuffer())
         .then((ab) => new Promise((ok, no) => this.ctx.decodeAudioData(ab, ok, no)))
         .then((b) => { this.voices[clip] = b; }).catch(() => {});
     }
   }
   hurry() { [0, 0.12].forEach((d) => this.tone(880, 0.1, { type: 'square', vol: 0.1, delay: d })); }
-  // falling off the roof: slide whistle + thud
-  over() { if (this.ctx) this.music.fall(this.master); }
+  // falling off the roof: slide whistle + thud, and every so often a "Damn"
+  over() {
+    if (!this.ctx) return;
+    this.music.fall(this.master);
+    if (Math.random() < 0.35) this.say('damn', 1.25);
+  }
 
   // a swoosh for flips and twirls
   whoosh(turns = 1) {

@@ -87,7 +87,6 @@ export class Game {
     this.reset();
     this.state = 'playing';
     this.sfx.unlock();
-    this.sfx.lastHype = 0;          // every game starts with "Yalla!"
     this.sfx.startMusic(0);
   }
 
