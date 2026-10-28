@@ -145,7 +145,9 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
   .menu .rec-tower i { min-height: 5px; }
   .menu .chars em { display: none; }
   .menu .chars button { padding: 6px 4px 10px; }
-  .menu .howto { margin-top: 14px; }
+  .menu .howto { margin-top: 40px; }
+  .menu .go { align-self: stretch; width: 100%; }
+  .menu .howto ul { justify-content: center; }
   .menu .howto h3 { display: none; }
   .menu .howto ul { display: flex; gap: 16px; }
   .menu .howto li:nth-child(n+3) { display: none; }
