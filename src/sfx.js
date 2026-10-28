@@ -2,13 +2,11 @@
 // One mute switch covers everything, and it's remembered per device.
 import { Music } from './music.js';
 
-// [shown on screen, recorded voice clip in public/voice]
+// [shown on screen, Gigi's own recording in public/voice] — played in this order, combo after combo
 const HYPE = [
-  ['Yalla beena!', 'yalla'],
-  ['Yallaaa!', 'yallaaa'],
-  ['Hell yeah!', 'hell'],
-  ["Let's gooo!", 'gooo'],
-  ['Habibi, fly!', 'habibi']
+  ['Yalla!', 'yalla'],
+  ['Oppa!', 'oppa'],
+  ['Eshta awi!', 'eshta']
 ];
 
 export class Sfx {
@@ -49,14 +47,14 @@ export class Sfx {
   land() { this.tone(140, 0.08, { type: 'sine', vol: 0.3, slide: 0.6 }); }
   bounce() { this.tone(520, 0.07, { type: 'square', vol: 0.12, slide: 0.7 }); }
   combo(n) { const f = 520 * Math.pow(1.12246, Math.min(n, 10)); this.tone(f, 0.12, { type: 'triangle', vol: 0.3 }); this.tone(f * 1.5, 0.14, { type: 'sine', vol: 0.18, delay: 0.05 }); }
-  // landing a combo: a hype line in a real-sounding voice (neural TTS clips, made ahead of time)
+  // landing a combo: a hype line, recorded by Gigi
   comboEnd() {
-    const [text, clip] = HYPE[(this.lastHype = (this.lastHype + 1 + Math.floor(Math.random() * (HYPE.length - 1))) % HYPE.length)];
+    const [text, clip] = HYPE[this.lastHype++ % HYPE.length];
     this.tone(660, 0.1, { type: 'triangle', vol: 0.2 }); this.tone(990, 0.16, { type: 'triangle', vol: 0.16, delay: 0.07 });
     const buf = this.voices && this.voices[clip];
     if (buf) {
       const src = this.ctx.createBufferSource(), g = this.ctx.createGain();
-      src.buffer = buf; src.playbackRate.value = 0.98 + Math.random() * 0.05; g.gain.value = 0.9; src.connect(g); g.connect(this.master); src.start(this.ctx.currentTime + 0.05);
+      src.buffer = buf; g.gain.value = 0.9; src.connect(g); g.connect(this.master); src.start(this.ctx.currentTime + 0.05);
     }
     return text;
   }

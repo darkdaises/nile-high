@@ -187,14 +187,15 @@ export class Music {
   mizmar(out) {
     const c = this.ctx, t = c.currentTime + 0.05;
     if (!this.mBuf) this.mBuf = makeMizmar(c);
-    const src = c.createBufferSource(), g = c.createGain();
-    src.buffer = this.mBuf; g.gain.value = 0.5;
-    src.connect(g); g.connect(out);
+    const src = c.createBufferSource(), g = c.createGain(), soft = c.createBiquadFilter();
+    src.buffer = this.mBuf; g.gain.value = 0.36;
+    soft.type = 'lowpass'; soft.frequency.value = 5200; soft.Q.value = 0.5;   // take the edge off the reeds
+    src.connect(soft); soft.connect(g); g.connect(out);
     const w = c.createGain(); w.gain.value = 0.35; g.connect(w); w.connect(this.verbIn);
     src.start(t);
     // the background darbuka steps back while the band plays
     const b = this.bus.gain, v = b.value;
-    b.cancelScheduledValues(t); b.setTargetAtTime(v * 0.25, t, 0.05); b.setTargetAtTime(v, t + this.mBuf.duration - 0.3, 0.3);
+    b.cancelScheduledValues(t); b.setTargetAtTime(v * 0.25, t, 0.4); b.setTargetAtTime(v, t + this.mBuf.duration - 0.3, 0.3);
   }
 
   // ---------- falling: a cartoon slide whistle, then a soft thud ----------

@@ -114,7 +114,7 @@ function reed(d, sr, notes, base, vol, opts = {}) {
     x += (Math.random() * 2 - 1) * 0.08;               // breath
     // tongue articulation: a quick dip at the start of each note
     const since = t - nt, left = nt + nd - t;
-    let env = opts.drone ? 1 : 0.55 + 0.45 * Math.min(1, since / 0.03);
+    let env = opts.drone ? Math.min(1, Math.pow(t / (opts.fadeIn || 0.06), 2)) : (since < 0 ? 0 : 0.55 + 0.45 * Math.min(1, since / 0.03));
     if (!opts.drone && left < 0.02 && ni < notes.length - 1 && notes[ni + 1][1] === semis) env *= left / 0.02;
     env *= Math.min(1, t / 0.06) * Math.min(1, (end - t) / 0.15 + 0);
     const y = x * 0.35 + res[0].run(x) * 2.4 + res[1].run(x) * 2.0 + res[2].run(x) * 0.8;
@@ -143,19 +143,22 @@ function tabl(d, sr, t0, kind, vol) {
 }
 
 export function makeMizmar(ctx) {
-  const sr = ctx.sampleRate, len = Math.floor(sr * 3.6);
+  const sr = ctx.sampleRate, len = Math.floor(sr * 4.6);
   const buf = ctx.createBuffer(2, len, sr), L = buf.getChannelData(0), R = buf.getChannelData(1);
   const lead = new Float32Array(len), drone = new Float32Array(len), drums = new Float32Array(len);
   const e = 60 / 132 / 2;            // eighth note
+  const intro = 1.1;                 // the band eases in: the drone swells and the drum rolls up, then the riff
   // the riff: a pickup run up to A, a turn around it, then down to the tonic
   const riff = 'D E F G A . A B A G A . C B A G F E D . .'.split(' ');
-  const notes = []; let t = 0.05;
+  const notes = []; let t = intro;
   for (const r of riff) { if (r !== '.') notes.push([t, RAST[r], e]); else notes[notes.length - 1][2] += e; t += e; }
   notes[notes.length - 1][2] += 0.3;
   reed(lead, sr, notes, 587.3, 0.5);                              // lead in D5
-  reed(drone, sr, [[0.05, 0, t + 0.3]], 293.7, 0.32, { drone: true });   // drone on D4
+  reed(drone, sr, [[0, 0, t + 0.3]], 293.7, 0.3, { drone: true, fadeIn: intro });   // drone on D4, swelling in
+  // drum roll: stick taps getting faster and louder, landing on a big DUM where the riff starts
+  for (let i = 0, tt = 0.15; tt < intro - 0.03; i++) { tabl(drums, sr, tt, 'T', 0.12 + 0.4 * (tt / intro)); tt += Math.max(e / 2, e * (1 - tt / intro) * 1.4); }
   const saidi = ['D', 'T', '', 'D', 'D', '', 'T', ''];
-  for (let i = 0, tt = 0.05; tt < t; i++, tt += e) { const h = saidi[i % 8]; if (h) tabl(drums, sr, tt, h, h === 'D' ? 0.9 : 0.5); }
+  for (let i = 0, tt = intro; tt < t; i++, tt += e) { const h = saidi[i % 8]; if (h) tabl(drums, sr, tt, h, h === 'D' ? 0.8 : 0.45); }
   for (let i = 0; i < len; i++) {
     L[i] = lead[i] * 0.85 + drone[i] * 0.6 + drums[i];
     R[i] = lead[i] * 0.65 + drone[i] * 0.8 + drums[i];
