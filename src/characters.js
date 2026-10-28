@@ -3,7 +3,7 @@
 
 export const CHARACTERS = [
   { id: 'blob', name: 'Mishmish', about: 'an apricot-sweet blob' },
-  { id: 'cat', name: 'Bosbos', about: 'a black street cat' },
+  { id: 'cat', name: 'Loza', about: 'a black street cat' },
   { id: 'scarab', name: 'Khepri', about: 'a lucky scarab' },
   { id: 'camel', name: 'Gamal', about: 'a baby camel' },
   { id: 'mummy', name: 'Tut', about: 'a tiny mummy' },
