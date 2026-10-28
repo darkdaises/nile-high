@@ -2,7 +2,8 @@
 // One mute switch covers everything, and it's remembered per device.
 import { Music } from './music.js';
 
-// [shown on screen, voice clip in public/voice]. Generated voice, delivered the way Gigi said them.
+// [shown on screen, voice clip in public/voice]. Yalla / Oppa / Eshta awi are cut from an ElevenLabs take (Haytham);
+// the others use a similar warm, energetic male voice.
 // Each game opens with Yalla, Oppa, Eshta awi in order, then mixes in the rest.
 const HYPE = [
   ['Yalla!', 'yalla'],
