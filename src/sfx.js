@@ -2,11 +2,16 @@
 // One mute switch covers everything, and it's remembered per device.
 import { Music } from './music.js';
 
-// [shown on screen, Gigi's own recording in public/voice] — played in this order, combo after combo
+// [shown on screen, voice clip in public/voice]. Generated voice, delivered the way Gigi said them.
+// Each game opens with Yalla, Oppa, Eshta awi in order, then mixes in the rest.
 const HYPE = [
   ['Yalla!', 'yalla'],
   ['Oppa!', 'oppa'],
-  ['Eshta awi!', 'eshta']
+  ['Eshta awi!', 'eshta'],
+  ['Yalla beena!', 'beena'],
+  ['Hell yeah!', 'hell'],
+  ["Let's gooo!", 'gooo'],
+  ['Habibi, fly!', 'habibi']
 ];
 
 export class Sfx {
@@ -47,9 +52,13 @@ export class Sfx {
   land() { this.tone(140, 0.08, { type: 'sine', vol: 0.3, slide: 0.6 }); }
   bounce() { this.tone(520, 0.07, { type: 'square', vol: 0.12, slide: 0.7 }); }
   combo(n) { const f = 520 * Math.pow(1.12246, Math.min(n, 10)); this.tone(f, 0.12, { type: 'triangle', vol: 0.3 }); this.tone(f * 1.5, 0.14, { type: 'sine', vol: 0.18, delay: 0.05 }); }
-  // landing a combo: a hype line, recorded by Gigi
+  // landing a combo: a hype line
   comboEnd() {
-    const [text, clip] = HYPE[this.lastHype++ % HYPE.length];
+    const n = this.lastHype++;
+    let i = n < 3 ? n : Math.floor(Math.random() * HYPE.length);
+    if (n >= 3 && i === this.prevHype) i = (i + 1) % HYPE.length;
+    this.prevHype = i;
+    const [text, clip] = HYPE[i];
     this.tone(660, 0.1, { type: 'triangle', vol: 0.2 }); this.tone(990, 0.16, { type: 'triangle', vol: 0.16, delay: 0.07 });
     const buf = this.voices && this.voices[clip];
     if (buf) {

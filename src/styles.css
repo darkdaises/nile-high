@@ -39,7 +39,7 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 @keyframes banner { 0% { opacity: 0; transform: translateY(10px) scale(.95); } 12%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-8px); } }
 
 /* Menu and game over */
-.overlay { position: absolute; inset: 0; z-index: 3; background: linear-gradient(180deg, rgba(30, 10, 34, .05), rgba(30, 10, 34, .55) 45%, rgba(30, 10, 34, .85)); animation: fade .35s ease; }
+.overlay { position: absolute; inset: 0; z-index: 3; background: linear-gradient(180deg, rgba(30, 10, 34, .45), rgba(30, 10, 34, .7) 45%, rgba(30, 10, 34, .9)); animation: fade .35s ease; }
 @keyframes fade { from { opacity: 0; } }
 .sheet { top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: flex-start; padding: 70px 26px max(24px, env(safe-area-inset-bottom)); overflow-y: auto; }
 .sheet > * { flex-shrink: 0; }
@@ -72,7 +72,7 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .sheet h1.title { margin: 2px 0 20px; font-family: "Bungee Inline", "DM Sans Variable", sans-serif; font-weight: 400; text-transform: uppercase;
   font-size: min(64px, calc(var(--col) * .146)); line-height: 1.05; letter-spacing: .01em; white-space: nowrap; align-self: flex-start;
   background: linear-gradient(180deg, #fff7d6 0%, #ffd36b 48%, #ff7a45 100%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 .035em 0 #ff5f6d) drop-shadow(0 .045em 0 #3a1236) drop-shadow(0 .16em .26em rgba(40, 6, 30, .45)); }
+  filter: drop-shadow(0 .03em 0 #ff5f6d) drop-shadow(0 .03em 0 #3a1236); }
 
 /* Your best: text on the left, the five levels as a little tower on the right */
 .record { display: flex; align-items: stretch; justify-content: space-between; gap: 14px; margin: 0 0 16px; padding: 12px 14px; border-radius: 16px;

@@ -41,9 +41,9 @@ export class Game {
     const r = this.canvas.getBoundingClientRect();
     const cw = this.canvas.width = Math.max(1, Math.round(r.width * dpr)), ch = this.canvas.height = Math.max(1, Math.round(r.height * dpr));
     if (cw / ch <= W / 720) {
-      // phones: zoom in so the climber is bigger. You see about 600 units of height, and the view
+      // phones: zoom in so the climber is bigger. You see about 500 units of height, and the view
       // pans sideways to follow the climber (the walls slide out of view on the far side).
-      this.vw = Math.min(W, Math.max(260, (cw / ch) * 600)); this.scale = cw / this.vw; this.vh = ch / this.scale;
+      this.vw = Math.min(W, Math.max(220, (cw / ch) * 500)); this.scale = cw / this.vw; this.vh = ch / this.scale;
     }
     else { this.vh = 720; this.scale = ch / this.vh; this.vw = cw / this.scale; }
     this.ox = (this.vw - W) / 2;
@@ -280,7 +280,7 @@ export class Game {
     const vw = this.vw, vh = this.vh;
     const height = Math.max(0, this.camY0 - this.camY) / GAP;   // floors climbed by the camera
     if (this.vw < W) {   // zoomed in: follow the climber sideways, smoothly
-      const p = this.player, target = -Math.max(0, Math.min(W - vw, p.x + p.w / 2 - vw / 2));
+      const p = this.player, target = -Math.max(0, Math.min(W - vw, p.x + p.w / 2 + p.vx * 10 - vw / 2));   // look ahead where you're running
       this.ox += (target - this.ox) * (this.state === 'playing' ? 0.12 : 1);
     }
     drawSky(g, vw, vh, height, t);
