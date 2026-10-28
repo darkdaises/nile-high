@@ -41,9 +41,9 @@ export class Game {
     const r = this.canvas.getBoundingClientRect();
     const cw = this.canvas.width = Math.max(1, Math.round(r.width * dpr)), ch = this.canvas.height = Math.max(1, Math.round(r.height * dpr));
     if (cw / ch <= W / 720) {
-      // phones: zoom in so the climber is bigger. You see about 500 units of height, and the view
+      // phones: zoom in so the climber is bigger. You see about 620 units of height, and the view
       // pans sideways to follow the climber (the walls slide out of view on the far side).
-      this.vw = Math.min(W, Math.max(220, (cw / ch) * 500)); this.scale = cw / this.vw; this.vh = ch / this.scale;
+      this.vw = Math.min(W, Math.max(260, (cw / ch) * 620)); this.scale = cw / this.vw; this.vh = ch / this.scale;
     }
     else { this.vh = 720; this.scale = ch / this.vh; this.vw = cw / this.scale; }
     this.ox = (this.vw - W) / 2;
@@ -293,7 +293,7 @@ export class Game {
     drawParticles(g, this.particles);
     if (this.state !== 'menu') {
       // phones: draw the climber bigger (same hitbox), scaled up from the feet
-      const p = this.player, k = this.pad ? 1.35 : 1;
+      const p = this.player, k = this.pad ? 1.2 : 1;
       g.save(); g.translate(p.x + p.w / 2, p.y + p.h); g.scale(k, k); g.translate(-(p.x + p.w / 2), -(p.y + p.h));
       drawCharacter(g, p, t, this.state, this.character);
       g.restore();
