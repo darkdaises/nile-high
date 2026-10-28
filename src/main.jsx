@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import '@fontsource-variable/dm-sans';
-import '@fontsource/lilita-one/latin-400.css';
+import '@fontsource-variable/fredoka/wght.css';
 import './styles.css';
 import App from './App.jsx';
 

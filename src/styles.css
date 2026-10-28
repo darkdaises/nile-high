@@ -68,11 +68,15 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .go-icon svg { width: 14px; height: 14px; fill: var(--ink); margin-left: 2px; }
 .over .go-icon svg { fill: none; stroke: var(--ink); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; margin: 0; }
 
-/* Title: a chunky game logo on one line — golden letters, dark outline, stacked 3D shadow */
-.title { margin: 2px 0 18px; font-family: "Lilita One", "DM Sans Variable", sans-serif; font-weight: 400; font-size: clamp(50px, 8.6vh, 76px); line-height: 1; letter-spacing: .01em; white-space: nowrap; transform: rotate(-3deg); transform-origin: left center; }
-.t-wrap { position: relative; display: inline-block; }
-.t-back { display: block; color: #3a1236; -webkit-text-stroke: .1em #3a1236; text-shadow: 0 .05em 0 #3a1236, 0 .09em 0 #3a1236, 0 .14em .2em rgba(30, 6, 26, .45); }
-.t-front { position: absolute; inset: 0; background: linear-gradient(180deg, #fff3c4 0%, #ffd36b 45%, #ff9a3c 100%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+/* Title: a bright sticker-style wordmark on one line. Rounded bold letters with stacked hard
+   shadows, "High" on a little tilted sunny tag, like the climb is already lifting it up. */
+.title { margin: 4px 0 20px; display: flex; align-items: center; gap: .14em; font-family: "Fredoka Variable", "DM Sans Variable", sans-serif;
+  font-weight: 700; font-size: clamp(50px, 8.4vh, 74px); line-height: 1; letter-spacing: -.02em; white-space: nowrap; }
+.t-nile { color: #fff6ec; text-shadow: .04em .05em 0 #ff5f6d, .08em .1em 0 #3a1236; }
+.t-high { display: inline-block; padding: .02em .2em .08em; border-radius: .26em; background: #ffd36b; color: #3a1236;
+  transform: rotate(-6deg) translateY(-.06em); box-shadow: .06em .08em 0 #3a1236;
+  animation: lift .6s .2s cubic-bezier(.2, 1.5, .4, 1) both; }
+@keyframes lift { from { transform: rotate(0deg) translateY(.15em); opacity: 0; } }
 
 /* Your best: text on the left, the five levels as a little tower on the right */
 .record { display: flex; align-items: stretch; justify-content: space-between; gap: 14px; margin: 0 0 16px; padding: 12px 14px; border-radius: 16px;

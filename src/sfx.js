@@ -5,11 +5,9 @@ import { Music } from './music.js';
 // [shown on screen, recorded voice clip in public/voice]
 const HYPE = [
   ['Yalla beena!', 'yalla'],
-  ["Aiwa ba'a!", 'aiwa'],
+  ['Yallaaa!', 'yallaaa'],
   ['Hell yeah!', 'hell'],
-  ['Ya salam!', 'salam'],
   ["Let's gooo!", 'gooo'],
-  ['Mashallah!', 'mashallah'],
   ['Habibi, fly!', 'habibi']
 ];
 
@@ -58,7 +56,7 @@ export class Sfx {
     const buf = this.voices && this.voices[clip];
     if (buf) {
       const src = this.ctx.createBufferSource(), g = this.ctx.createGain();
-      src.buffer = buf; g.gain.value = 0.9; src.connect(g); g.connect(this.master); src.start(this.ctx.currentTime + 0.05);
+      src.buffer = buf; src.playbackRate.value = 0.98 + Math.random() * 0.05; g.gain.value = 0.9; src.connect(g); g.connect(this.master); src.start(this.ctx.currentTime + 0.05);
     }
     return text;
   }
@@ -86,8 +84,12 @@ export class Sfx {
     src.connect(f); f.connect(g); g.connect(this.out); src.start(t); src.stop(t + dur + 0.02);
   }
 
-  // new level: the zaghrouta
-  levelUp() { if (this.ctx) this.music.zaghrouta(this.master); }
+  // new level: takes turns between the zaghrouta and a Saidi mizmar band
+  levelUp() {
+    if (!this.ctx) return;
+    this.levels = (this.levels || 0) + 1;
+    if (this.levels % 2) this.music.zaghrouta(this.master); else this.music.mizmar(this.master);
+  }
 
   startMusic(zone) { if (this.ctx) this.music.start(zone); }
   setZone(zone) { if (this.ctx) this.music.setZone(zone); }
