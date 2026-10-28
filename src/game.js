@@ -284,6 +284,16 @@ export class Game {
       this.ox += (target - this.ox) * (this.state === 'playing' ? 0.12 : 1);
     }
     drawSky(g, vw, vh, height, t);
+    // let the phone's status bar and browser bars match the sky, so the game feels full screen
+    if (t - (this.lastTint || 0) > 0.5) {
+      this.lastTint = t;
+      try {
+        const [r, gg, b] = g.getImageData(2, 2, 1, 1).data, [r2, g2, b2] = g.getImageData(2, this.canvas.height - 3, 1, 1).data;
+        const top = `rgb(${r},${gg},${b})`, bot = `rgb(${r2},${g2},${b2})`;
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', top);
+        document.documentElement.style.background = top; document.body.style.background = `linear-gradient(${top}, ${bot})`;
+      } catch (e) {}
+    }
     drawBackdrop(g, vw, vh, this.camY - this.camY0, height, t);
     g.save(); g.translate(this.ox + shake[0], shake[1] - this.camY);
     drawWalls(g, W, this.camY, vh, WALL, height, (y) => levelOf(Math.floor((BASE - y) / GAP)), t);
