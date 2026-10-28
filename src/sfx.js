@@ -5,6 +5,8 @@ import { Music } from './music.js';
 // [shown on screen, voice clip in public/voice]. Yalla / Oppa / Eshta awi are cut from an ElevenLabs take (Haytham);
 // the others use a similar warm, energetic male voice.
 // Each game opens with Yalla, Oppa, Eshta awi in order, then mixes in the rest.
+// bump when the clips change, so phones and browsers don't keep playing the old ones
+const VOICE_V = 4;
 const HYPE = [
   ['Yalla!', 'yalla'],
   ['Oppa!', 'oppa'],
@@ -72,7 +74,7 @@ export class Sfx {
     this.voices = {};
     const base = import.meta.env.BASE_URL;
     for (const [, clip] of HYPE) {
-      fetch(`${base}voice/${clip}.mp3`).then((r) => r.arrayBuffer())
+      fetch(`${base}voice/${clip}.mp3?v=${VOICE_V}`, { cache: "no-cache" }).then((r) => r.arrayBuffer())
         .then((ab) => new Promise((ok, no) => this.ctx.decodeAudioData(ab, ok, no)))
         .then((b) => { this.voices[clip] = b; }).catch(() => {});
     }
