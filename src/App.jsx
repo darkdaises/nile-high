@@ -233,13 +233,9 @@ export default function App() {
   );
 }
 
+// The title: gold sign letters like a Cairo rooftop sign at sunset
 function Title() {
-  return (
-    <h1 className="title" aria-label="Nile High">
-      <span className="t-nile" aria-hidden="true">Nile</span>
-      <span className="t-high" aria-hidden="true">High</span>
-    </h1>
-  );
+  return <h1 className="title">Nile High</h1>;
 }
 
 // Your best climb, shown as the tower: one block per level, filled up to your best floor.

@@ -5,7 +5,7 @@
 //  - ambience that changes with the level: Cairo traffic and horns, desert wind, a temple hum, Nile crickets
 // Plus the zaghrouta for reaching a new level (rendered in samples.js).
 
-import { makeZaghrouta, makeMizmar } from './samples.js';
+import { makeZaghrouta } from './samples.js';
 
 const midi = (n) => 440 * Math.pow(2, (n - 69) / 12);
 // Hijaz on D: D Eb F# G A Bb C D
@@ -40,8 +40,8 @@ export class Music {
     this.bus.gain.cancelScheduledValues(t); this.bus.gain.setTargetAtTime(0.55, t, 0.6);
     this.amb.gain.cancelScheduledValues(t); this.amb.gain.setTargetAtTime(0.5, t, 0.8);
     this.setZone(zone);
-    // render the level-up sounds now (takes a moment), not mid-climb
-    if (!this.mBuf) setTimeout(() => { this.zBuf = this.zBuf || makeZaghrouta(this.ctx); this.mBuf = makeMizmar(this.ctx); }, 50);
+    // render the level-up sound now (takes a moment), not mid-climb
+    if (!this.zBuf) setTimeout(() => { this.zBuf = this.zBuf || makeZaghrouta(this.ctx); }, 50);
     if (this.playing) return;
     this.playing = true; this.next = t + 0.1; this.step = 0;
     this.timer = setInterval(() => this.tick(), 30);
@@ -181,21 +181,6 @@ export class Music {
     src.connect(g); g.connect(out);
     const w = c.createGain(); w.gain.value = 0.5; g.connect(w); w.connect(this.verbIn);   // a room around it
     src.start(t);
-  }
-
-  // ---------- a Saidi mizmar band for a new level (takes turns with the zaghrouta) ----------
-  mizmar(out) {
-    const c = this.ctx, t = c.currentTime + 0.05;
-    if (!this.mBuf) this.mBuf = makeMizmar(c);
-    const src = c.createBufferSource(), g = c.createGain(), soft = c.createBiquadFilter();
-    src.buffer = this.mBuf; g.gain.value = 0.36;
-    soft.type = 'lowpass'; soft.frequency.value = 5200; soft.Q.value = 0.5;   // take the edge off the reeds
-    src.connect(soft); soft.connect(g); g.connect(out);
-    const w = c.createGain(); w.gain.value = 0.35; g.connect(w); w.connect(this.verbIn);
-    src.start(t);
-    // the background darbuka steps back while the band plays
-    const b = this.bus.gain, v = b.value;
-    b.cancelScheduledValues(t); b.setTargetAtTime(v * 0.25, t, 0.4); b.setTargetAtTime(v, t + this.mBuf.duration - 0.3, 0.3);
   }
 
   // ---------- falling: a cartoon slide whistle, then a soft thud ----------

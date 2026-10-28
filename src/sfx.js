@@ -82,12 +82,8 @@ export class Sfx {
     src.connect(f); f.connect(g); g.connect(this.out); src.start(t); src.stop(t + dur + 0.02);
   }
 
-  // new level: takes turns between the zaghrouta and a Saidi mizmar band
-  levelUp() {
-    if (!this.ctx) return;
-    this.levels = (this.levels || 0) + 1;
-    if (this.levels % 2) this.music.zaghrouta(this.master); else this.music.mizmar(this.master);
-  }
+  // new level: the zaghrouta
+  levelUp() { if (this.ctx) this.music.zaghrouta(this.master); }
 
   startMusic(zone) { if (this.ctx) this.music.start(zone); }
   setZone(zone) { if (this.ctx) this.music.setZone(zone); }
