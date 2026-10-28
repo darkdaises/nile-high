@@ -68,9 +68,11 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .go-icon svg { width: 14px; height: 14px; fill: var(--ink); margin-left: 2px; }
 .over .go-icon svg { fill: none; stroke: var(--ink); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; margin: 0; }
 
-/* Title: one line, "High" in sunset gold */
-.title { margin: 0 0 16px; font-size: clamp(46px, 8vh, 72px); line-height: .95; font-weight: 1000; letter-spacing: -.055em; white-space: nowrap; text-shadow: 0 8px 40px rgba(60, 10, 40, .45); }
-.title span { text-shadow: none; filter: drop-shadow(0 8px 30px rgba(60, 10, 40, .45)); background: linear-gradient(180deg, #ffe08a, #ff8a4c); -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* Title: a chunky game logo on one line — golden letters, dark outline, stacked 3D shadow */
+.title { margin: 2px 0 18px; font-family: "Lilita One", "DM Sans Variable", sans-serif; font-weight: 400; font-size: clamp(50px, 8.6vh, 76px); line-height: 1; letter-spacing: .01em; white-space: nowrap; transform: rotate(-3deg); transform-origin: left center; }
+.t-wrap { position: relative; display: inline-block; }
+.t-back { display: block; color: #3a1236; -webkit-text-stroke: .1em #3a1236; text-shadow: 0 .05em 0 #3a1236, 0 .09em 0 #3a1236, 0 .14em .2em rgba(30, 6, 26, .45); }
+.t-front { position: absolute; inset: 0; background: linear-gradient(180deg, #fff3c4 0%, #ffd36b 45%, #ff9a3c 100%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
 
 /* Your best: text on the left, the five levels as a little tower on the right */
 .record { display: flex; align-items: stretch; justify-content: space-between; gap: 14px; margin: 0 0 16px; padding: 12px 14px; border-radius: 16px;
@@ -121,5 +123,5 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
   .key svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 }
 @media (max-width: 420px) { .by { display: none; } .sheet { padding-left: 22px; padding-right: 22px; } }
-@media (max-height: 700px) { .title { font-size: 44px; } .rec-text b { font-size: 24px; } .preview { width: 60px; height: 53px; } .chars em { display: none; } }
+@media (max-height: 700px) { .title { font-size: 46px; } .rec-text b { font-size: 24px; } .preview { width: 60px; height: 53px; } .chars em { display: none; } }
 @media (prefers-reduced-motion: reduce) { .overlay, .combo, .hurry, .banner { animation: none; } }

@@ -234,7 +234,7 @@ export default function App() {
 }
 
 function Title() {
-  return <h1 className="title">Nile <span>High</span></h1>;
+  return <h1 className="title" aria-label="Nile High"><span className="t-wrap" aria-hidden="true"><span className="t-back">Nile High</span><span className="t-front">Nile High</span></span></h1>;
 }
 
 // Your best climb, shown as the tower: one block per level, filled up to your best floor.

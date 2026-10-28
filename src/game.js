@@ -41,9 +41,9 @@ export class Game {
     const r = this.canvas.getBoundingClientRect();
     const cw = this.canvas.width = Math.max(1, Math.round(r.width * dpr)), ch = this.canvas.height = Math.max(1, Math.round(r.height * dpr));
     if (cw / ch <= W / 720) {
-      // phones: zoom in so the climber is bigger. You see about 700 units of height, and the view
+      // phones: zoom in so the climber is bigger. You see about 600 units of height, and the view
       // pans sideways to follow the climber (the walls slide out of view on the far side).
-      this.vw = Math.min(W, Math.max(300, (cw / ch) * 700)); this.scale = cw / this.vw; this.vh = ch / this.scale;
+      this.vw = Math.min(W, Math.max(260, (cw / ch) * 600)); this.scale = cw / this.vw; this.vh = ch / this.scale;
     }
     else { this.vh = 720; this.scale = ch / this.vh; this.vw = cw / this.scale; }
     this.ox = (this.vw - W) / 2;
