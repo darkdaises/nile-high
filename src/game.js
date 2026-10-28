@@ -23,8 +23,6 @@ export class Game {
     this.canvas = canvas; this.ctx = canvas.getContext('2d');
     this.onHud = onHud; this.onOver = onOver;
     this.keys = { left: false, right: false, jump: false };
-    // phones get a narrower tower so the walls sit closer and everything is bigger; computers keep 400
-    this.W = matchMedia('(pointer: coarse)').matches ? 320 : W;
     this.tilt = 0;                 // -1..1 from tilting the phone (0 when not used)
     this.sfx = new Sfx();
     this.resize();
@@ -42,13 +40,13 @@ export class Game {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const r = this.canvas.getBoundingClientRect();
     const cw = this.canvas.width = Math.max(1, Math.round(r.width * dpr)), ch = this.canvas.height = Math.max(1, Math.round(r.height * dpr));
-    if (cw / ch <= this.W / 720) {
-      // phones: zoom in so the climber is bigger. You see about 620 units of height, and the view
+    if (cw / ch <= W / 720) {
+      // phones: zoom in so the climber is bigger. You see about 500 units of height, and the view
       // pans sideways to follow the climber (the walls slide out of view on the far side).
-      this.vw = this.W; this.scale = cw / this.vw; this.vh = ch / this.scale;
+      this.vw = Math.min(W, Math.max(220, (cw / ch) * 500)); this.scale = cw / this.vw; this.vh = ch / this.scale;
     }
     else { this.vh = 720; this.scale = ch / this.vh; this.vw = cw / this.scale; }
-    this.ox = (this.vw - this.W) / 2;
+    this.ox = (this.vw - W) / 2;
     const oldY0 = this.camY0;
     // on touch screens keep the ground a little above the bottom edge (home bar)
     this.pad = matchMedia('(pointer: coarse)').matches ? 24 : 0;
@@ -59,7 +57,7 @@ export class Game {
   reset() {
     this.ledges = [];
     for (let i = 0; i < 14; i++) this.addLedge(i);
-    const p = this.player = { x: this.W / 2 - 17, y: this.ledges[0].y - 30, w: 34, h: 30, vx: 0, vy: 0, ground: 0, face: 1, squash: 0, blink: 0, air: 0, rot: 0, twirl: 1, trick: null };
+    const p = this.player = { x: W / 2 - 17, y: this.ledges[0].y - 30, w: 34, h: 30, vx: 0, vy: 0, ground: 0, face: 1, squash: 0, blink: 0, air: 0, rot: 0, twirl: 1, trick: null };
     p.lastFloor = 0;
     this.camY = this.camY0;        // world y at the top of the screen
     this.speed = 0;                // auto-scroll speed (px per frame)
@@ -75,12 +73,12 @@ export class Game {
 
   addLedge(i) {
     const base = BASE;
-    if (i === 0) { this.ledges[0] = { i: 0, x: WALL, w: this.W - WALL * 2, y: base, full: true, prop: null }; return; }
+    if (i === 0) { this.ledges[0] = { i: 0, x: WALL, w: W - WALL * 2, y: base, full: true, prop: null }; return; }
     // the first ledge of every level is a full-width landing
     const milestone = i % LEVEL_FLOORS === 0;
     const hard = Math.min(1, i / 160);
-    const k = this.W / W, w = milestone ? this.W - WALL * 2 : rand(lerp(150, 78, hard), lerp(230, 116, hard)) * k;
-    const x = milestone ? WALL : rand(WALL, this.W - WALL - w);
+    const w = milestone ? W - WALL * 2 : rand(lerp(150, 78, hard), lerp(230, 116, hard));
+    const x = milestone ? WALL : rand(WALL, W - WALL - w);
     const lvl = levelOf(i), props = LEVELS[lvl].props;
     this.ledges[i] = { i, x, w, y: base - i * GAP, full: milestone, lvl, prop: milestone ? 'garden' : props[Math.floor(Math.random() * props.length)], seed: Math.random() };
   }
@@ -158,7 +156,7 @@ export class Game {
 
     // walls: bounce off and keep most of your speed (great for big jumps)
     if (p.x < WALL) { p.x = WALL; if (Math.abs(p.vx) > 2) { p.vx = -p.vx * 0.85; p.face = 1; this.sfx.bounce(); } else p.vx = 0; }
-    if (p.x + p.w > this.W - WALL) { p.x = this.W - WALL - p.w; if (Math.abs(p.vx) > 2) { p.vx = -p.vx * 0.85; p.face = -1; this.sfx.bounce(); } else p.vx = 0; }
+    if (p.x + p.w > W - WALL) { p.x = W - WALL - p.w; if (Math.abs(p.vx) > 2) { p.vx = -p.vx * 0.85; p.face = -1; this.sfx.bounce(); } else p.vx = 0; }
 
     // landing: only when falling through a ledge top
     let landed = null;
@@ -229,7 +227,7 @@ export class Game {
     } else if (jumped !== 0 && this.combo) this.endCombo();
     else this.sfx.land();
     const z = levelOf(L.i);
-    if (z > this.zone) { this.zone = z; this.sfx.levelUp(); this.sfx.setZone(z); this.sparkle(this.W / 2, L.y, 40); }
+    if (z > this.zone) { this.zone = z; this.sfx.levelUp(); this.sfx.setZone(z); this.sparkle(W / 2, L.y, 40); }
     this.emitHud();
   }
 
@@ -255,7 +253,7 @@ export class Game {
     p.vy = 0; p.ground = this.floor;
     this.camY = Math.min(this.camY, this.ledges[this.floor].y - this.vh * 0.6);
     p.rot = 0; p.twirl = 1; p.trick = null;
-    p.y = this.ledges[this.floor].y - p.h; p.x = Math.max(WALL, Math.min(this.W - WALL - p.w, this.ledges[this.floor].x + this.ledges[this.floor].w / 2 - p.w / 2));
+    p.y = this.ledges[this.floor].y - p.h; p.x = Math.max(WALL, Math.min(W - WALL - p.w, this.ledges[this.floor].x + this.ledges[this.floor].w / 2 - p.w / 2));
     this.onOver({ score: this.score, floor: this.maxFloor, bestCombo: this.bestCombo, zone: this.zone, zoneName: LEVELS[this.zone].name });
   }
 
@@ -281,19 +279,19 @@ export class Game {
     const shake = this.shake > 0.5 ? [rand(-this.shake, this.shake), rand(-this.shake, this.shake)] : [0, 0];
     const vw = this.vw, vh = this.vh;
     const height = Math.max(0, this.camY0 - this.camY) / GAP;   // floors climbed by the camera
-    if (this.vw < this.W) {   // zoomed in: follow the climber sideways, smoothly
-      const p = this.player, target = -Math.max(0, Math.min(this.W - vw, p.x + p.w / 2 + p.vx * 10 - vw / 2));   // look ahead where you're running
+    if (this.vw < W) {   // zoomed in: follow the climber sideways, smoothly
+      const p = this.player, target = -Math.max(0, Math.min(W - vw, p.x + p.w / 2 + p.vx * 10 - vw / 2));   // look ahead where you're running
       this.ox += (target - this.ox) * (this.state === 'playing' ? 0.12 : 1);
     }
     drawSky(g, vw, vh, height, t);
     drawBackdrop(g, vw, vh, this.camY - this.camY0, height, t);
     g.save(); g.translate(this.ox + shake[0], shake[1] - this.camY);
-    drawWalls(g, this.W, this.camY, vh, WALL, height, (y) => levelOf(Math.floor((BASE - y) / GAP)), t);
+    drawWalls(g, W, this.camY, vh, WALL, height, (y) => levelOf(Math.floor((BASE - y) / GAP)), t);
     for (const L of this.ledges) if (L && L.y - this.camY > -40 && L.y - this.camY < vh + 60) drawLedge(g, L, t, height);
     drawParticles(g, this.particles);
     if (this.state !== 'menu') {
       // phones: draw the climber bigger (same hitbox), scaled up from the feet
-      const p = this.player, k = this.pad ? 1.2 : 1;
+      const p = this.player, k = this.pad ? 1.35 : 1;
       g.save(); g.translate(p.x + p.w / 2, p.y + p.h); g.scale(k, k); g.translate(-(p.x + p.w / 2), -(p.y + p.h));
       drawCharacter(g, p, t, this.state, this.character);
       g.restore();
@@ -306,21 +304,6 @@ export class Game {
       g.globalAlpha = 1;
     }
     g.restore();
-    // let the phone's status bar and browser bars match what's at the top and bottom edges of the screen,
-    // so the game feels full screen (on the menu and game over, the dark blurred overlay is on top too)
-    if (t - (this.lastTint || 0) > 0.5) {
-      this.lastTint = t;
-      try {
-        const c = this.canvas, px = (y) => Array.from(g.getImageData(Math.floor(c.width / 2), y, 1, 1).data).slice(0, 3);
-        const over = (rgb, a) => rgb.map((v, i) => Math.round(v * (1 - a) + [30, 10, 34][i] * a));
-        let top = px(2), bot = px(c.height - 3);
-        if (this.state !== 'playing') { top = over(top, 0.35); bot = over(bot, 0.8); }
-        const T = `rgb(${top})`, B = `rgb(${bot})`;
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', T);
-        document.documentElement.style.background = B;
-        document.body.style.background = `linear-gradient(${T}, ${B})`;
-      } catch (e) {}
-    }
   }
 }
 
