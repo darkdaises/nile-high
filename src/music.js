@@ -3,9 +3,9 @@
 //  - an oud-like pluck improvising in maqam Hijaz on D
 //  - a soft low drone
 //  - ambience that changes with the level: Cairo traffic and horns, desert wind, a temple hum, Nile crickets
-// Plus the zaghrouta for reaching a new level and a darbuka solo for combos (drums and voices come from samples.js).
+// Plus the zaghrouta for reaching a new level (rendered in samples.js).
 
-import { makeDarbuka, makeZaghrouta } from './samples.js';
+import { makeZaghrouta } from './samples.js';
 
 const midi = (n) => 440 * Math.pow(2, (n - 69) / 12);
 // Hijaz on D: D Eb F# G A Bb C D
@@ -26,7 +26,6 @@ export class Music {
     for (let i = 0; i < len; i++) { const w = Math.random() * 2 - 1; b = (b + 0.02 * w) / 1.02; d[i] = b * 3.5; }   // brown-ish noise
     this.white = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
     const wd = this.white.getChannelData(0); for (let i = 0; i < wd.length; i++) wd[i] = Math.random() * 2 - 1;
-    this.kit = makeDarbuka(ctx);
     this.zone = -1; this.playing = false; this.step = 0; this.note = 4; this.bpm = 104;
   }
 
@@ -66,17 +65,21 @@ export class Music {
     }
   }
 
-  // one darbuka stroke from the sampled kit (a random take, slight level and tuning changes)
-  hit(kind, t, level, out = this.bus) {
-    const c = this.ctx, takes = this.kit[kind], src = c.createBufferSource(), g = c.createGain();
-    src.buffer = takes[Math.floor(Math.random() * takes.length)];
-    src.playbackRate.value = 1 + (Math.random() - 0.5) * 0.02;
-    g.gain.value = level * (0.9 + Math.random() * 0.2);
-    src.connect(g); g.connect(out); src.start(t);
-    return g;
+  dum(t) {
+    const c = this.ctx, o = c.createOscillator(), g = c.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(52, t + 0.18);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.7, t + 0.006); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    o.connect(g); g.connect(this.bus); o.start(t); o.stop(t + 0.4);
   }
-  dum(t) { this.hit('doum', t, 0.75); }
-  tak(t, level) { this.hit(level > 0.3 ? 'tek' : 'ka', t, level * 1.2); }
+  tak(t, level) {
+    const c = this.ctx, src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = this.white; f.type = 'bandpass'; f.frequency.value = 2600; f.Q.value = 1.4;
+    g.gain.setValueAtTime(level, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+    src.connect(f); f.connect(g); g.connect(this.bus); src.start(t, Math.random()); src.stop(t + 0.09);
+    const o = c.createOscillator(), og = c.createGain(); o.type = 'triangle'; o.frequency.value = 820;
+    og.gain.setValueAtTime(level * 0.35, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+    o.connect(og); og.connect(this.bus); o.start(t); o.stop(t + 0.06);
+  }
   drone(t, len) {
     const c = this.ctx, g = c.createGain(), f = c.createBiquadFilter();
     f.type = 'lowpass'; f.frequency.value = 500;
@@ -176,28 +179,6 @@ export class Music {
     src.connect(g); g.connect(out);
     const w = c.createGain(); w.gain.value = 0.5; g.connect(w); w.connect(this.verbIn);   // a room around it
     src.start(t);
-  }
-
-  // ---------- darbuka solo for landing a combo ----------
-  // A short Egyptian-style flourish: a rolled lead-in (tek-ka-tek-ka getting louder), then the
-  // "wahda w nos" phrase  DOUM . tek-ka tek . DOUM . tek-ka-tek-ka  and a final DOUM.
-  wahdaWNos(out) {
-    const c = this.ctx, t0 = c.currentTime + 0.03, s = 60 / 120 / 4;   // sixteenth notes at 120
-    const bus = c.createGain(); bus.gain.value = 0.62; bus.connect(out);
-    const room = c.createGain(); room.gain.value = 0.25; bus.connect(room); room.connect(this.verbIn);
-    // lead-in roll: 8 strokes in thirty-seconds, crescendo
-    for (let i = 0; i < 8; i++) this.hit(i % 2 ? 'ka' : 'tek', t0 + i * s / 2, 0.25 + i * 0.07, bus);
-    const t1 = t0 + 4 * s;
-    //            1          e     &      a     2      e     &      a     3     e      &     a     4     e     &     a
-    const pat = ['D', '', 'k', 't', '', 'D', '', 't', 'D', 'k', 't', 'k', 't', 'k', 't', 'k', 'D'];
-    pat.forEach((h, i) => {
-      const t = t1 + i * s;
-      if (h === 'D') this.hit('doum', t, 1, bus);
-      if (h === 't') this.hit('tek', t, i > 11 ? 0.55 + (i - 11) * 0.08 : 0.8, bus);
-      if (h === 'k') this.hit('ka', t, 0.55, bus);
-    });
-    // a tek on top of the last doum, the way players "close" a phrase
-    this.hit('tek', t1 + 16 * s, 0.9, bus);
   }
 
   // ---------- falling: a cartoon slide whistle, then a soft thud ----------

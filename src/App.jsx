@@ -233,20 +233,8 @@ export default function App() {
   );
 }
 
-// The title: NILE rides a little river, HIGH climbs up like floors of the tower.
 function Title() {
-  return (
-    <h1 className="title" aria-label="Nile High">
-      <span className="t-nile" aria-hidden="true">
-        Nile
-        <svg className="t-river" viewBox="0 0 200 16" preserveAspectRatio="none"><path d="M2 9 C 22 1, 42 1, 62 9 S 102 17, 122 9 S 162 1, 182 9 L 198 9" /></svg>
-      </span>
-      <span className="t-high" aria-hidden="true">
-        {'HIGH'.split('').map((l, i) => <span key={i} style={{ '--i': i }}>{l}</span>)}
-        <i className="t-sun" />
-      </span>
-    </h1>
-  );
+  return <h1 className="title">Nile <span>High</span></h1>;
 }
 
 // Your best climb, shown as the tower: one block per level, filled up to your best floor.
