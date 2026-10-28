@@ -40,16 +40,20 @@ export class Game {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const r = this.canvas.getBoundingClientRect();
     const cw = this.canvas.width = Math.max(1, Math.round(r.width * dpr)), ch = this.canvas.height = Math.max(1, Math.round(r.height * dpr));
-    if (cw / ch <= W / 720) {
+    // On phones the game runs behind the browser's bottom toolbar. Zoom is based on the part you can
+    // actually see, so the toolbar never changes how big things look; the hidden strip is just extra scenery.
+    const seen = Math.min(r.height, window.visualViewport ? visualViewport.height : innerHeight);
+    const sh = Math.max(1, Math.round(seen * dpr)), under = r.height - seen;
+    if (cw / sh <= W / 720) {
       // phones: zoom in so the climber is bigger. You see about 500 units of height, and the view
       // pans sideways to follow the climber (the walls slide out of view on the far side).
-      this.vw = Math.min(W, Math.max(220, (cw / ch) * 500)); this.scale = cw / this.vw; this.vh = ch / this.scale;
+      this.vw = Math.min(W, Math.max(220, (cw / sh) * 500)); this.scale = cw / this.vw; this.vh = ch / this.scale;
     }
-    else { this.vh = 720; this.scale = ch / this.vh; this.vw = cw / this.scale; }
+    else { this.scale = sh / 720; this.vh = ch / this.scale; this.vw = cw / this.scale; }
     this.ox = (this.vw - W) / 2;
     const oldY0 = this.camY0;
-    // on touch screens keep the ground a little above the bottom edge (home bar)
-    this.pad = matchMedia('(pointer: coarse)').matches ? 24 : 0;
+    // on touch screens keep the ground a little above the bottom edge (home bar), and above the browser toolbar
+    this.pad = matchMedia('(pointer: coarse)').matches ? 24 + (under * dpr) / this.scale : 0;
     this.camY0 = BASE + 40 + this.pad - this.vh;   // camera position with the ground at the bottom of the screen
     if (this.camY !== undefined && oldY0 !== undefined && this.state !== 'playing') this.camY += this.camY0 - oldY0;
   }
