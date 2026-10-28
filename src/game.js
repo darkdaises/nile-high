@@ -49,7 +49,9 @@ export class Game {
     this.ox = (this.vw - W) / 2;
     const oldY0 = this.camY0;
     // on touch screens keep the ground a little above the bottom edge (home bar)
-    this.pad = matchMedia('(pointer: coarse)').matches ? 24 : 0;
+    // phones: keep the ground clear of the browser toolbar that sits over the bottom of the game
+    const under = Math.max(0, r.height - (window.visualViewport ? visualViewport.height : innerHeight));
+    this.pad = matchMedia('(pointer: coarse)').matches ? 24 + under / this.scale : 0;
     this.camY0 = BASE + 40 + this.pad - this.vh;   // camera position with the ground at the bottom of the screen
     if (this.camY !== undefined && oldY0 !== undefined && this.state !== 'playing') this.camY += this.camY0 - oldY0;
   }

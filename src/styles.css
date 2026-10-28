@@ -2,11 +2,13 @@
   /* the tower's width on screen: full width on phones, otherwise it matches the game's 400:720 view */
   --col: min(100vw, calc(100dvh * 400 / 720)); color-scheme: dark; }
 * { box-sizing: border-box; }
-html, body, #root { height: 100%; }
+html, body, #root { min-height: 100%; }
 body { margin: 0; color: var(--ink); background: #2a1430; font-family: "DM Sans Variable", system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow: hidden; overscroll-behavior: none; }
 button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
-.app { position: fixed; inset: 0; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+/* fill the whole screen, including behind the browser's bottom toolbar (100lvh). --under is how much of
+   the bottom the toolbar covers, so buttons and text stay above it. */
+.app { position: relative; width: 100%; height: 100vh; height: 100lvh; --under: max(0px, calc(100lvh - 100dvh)); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
 .screen { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .col { position: absolute; left: 50%; transform: translateX(-50%); width: var(--col); }
 
@@ -41,7 +43,7 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 /* Menu and game over */
 .overlay { position: absolute; inset: 0; z-index: 3; background: linear-gradient(180deg, rgba(30, 10, 34, .35), rgba(30, 10, 34, .55) 45%, rgba(30, 10, 34, .8)); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);   /* blur the game behind so the text reads */ animation: fade .35s ease; }
 @keyframes fade { from { opacity: 0; } }
-.sheet { top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: flex-start; padding: 70px 26px max(24px, env(safe-area-inset-bottom)); overflow-y: auto; }
+.sheet { top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: flex-start; padding: 70px 26px calc(max(24px, env(safe-area-inset-bottom)) + var(--under, 0px)); overflow-y: auto; }
 .sheet > * { flex-shrink: 0; }
 .sheet > :first-child { margin-top: auto; }
 .sheet > :last-child { margin-bottom: auto; }
@@ -116,7 +118,7 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
    and tap anywhere else to jump */
 .pad { display: none; }
 @media (pointer: coarse) {
-  .pad { bottom: 0; z-index: 4; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 16px max(18px, env(safe-area-inset-bottom)); pointer-events: none; }
+  .pad { bottom: 0; z-index: 4; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 16px calc(max(18px, env(safe-area-inset-bottom)) + var(--under, 0px)); pointer-events: none; }
   .dirs { display: flex; gap: 10px; }
   .key { pointer-events: auto; width: 70px; height: 70px; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, .35); background: rgba(20, 8, 30, .28); backdrop-filter: blur(6px); display: grid; place-items: center; touch-action: none; }
   .key:active { background: rgba(255, 255, 255, .3); }

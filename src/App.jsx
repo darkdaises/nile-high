@@ -35,6 +35,7 @@ export default function App() {
     if (/[?&]debug\b/.test(location.search)) window.__hop = g;   // for automated tests only
     const onResize = () => g.resize();
     addEventListener('resize', onResize);
+    window.visualViewport?.addEventListener('resize', onResize);   // the phone's toolbar showing or hiding
     const map = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'jump', KeyW: 'jump', Space: 'jump' };
     const down = (e) => {
       const k = map[e.code];
@@ -43,7 +44,7 @@ export default function App() {
     };
     const up = (e) => { const k = map[e.code]; if (k) g.setKey(k, false); };
     addEventListener('keydown', down); addEventListener('keyup', up);
-    return () => { removeEventListener('resize', onResize); removeEventListener('keydown', down); removeEventListener('keyup', up); };
+    return () => { removeEventListener('resize', onResize); window.visualViewport?.removeEventListener('resize', onResize); removeEventListener('keydown', down); removeEventListener('keyup', up); };
   }, []);
 
   function play() {
