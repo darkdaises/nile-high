@@ -111,7 +111,7 @@ export default function App() {
 
   const newBest = result && best && result.score >= best.score && result.score > 0;
   const howTo = touch.current
-    ? [['tilt', 'Tilt your phone', 'to run left and right'], ['tap', 'Tap anywhere', 'to jump, hold to jump higher'], ['fast', 'Run fast', 'for bigger jumps and flips'], ['combo', 'Skip floors', 'to build combos']]
+    ? [['tilt', 'Tilt your phone', 'to run left and right', 'to run'], ['tap', 'Tap anywhere', 'to jump, hold to jump higher', 'to jump'], ['fast', 'Run fast', 'for bigger jumps and flips'], ['combo', 'Skip floors', 'to build combos']]
     : [['keys', '← → or A D', 'to run'], ['space', 'Space', 'to jump, hold to jump higher'], ['fast', 'Run fast', 'for bigger jumps and flips'], ['combo', 'Skip floors', 'to build combos']];
 
   const muteBtn = (
@@ -173,8 +173,8 @@ export default function App() {
             <section className="howto" aria-labelledby="howto-h">
               <h3 id="howto-h">How to play</h3>
               <ul>
-                {howTo.map(([icon, b, rest]) => (
-                  <li key={icon}><HowIcon k={icon} /><span><b>{b}</b> {rest}</span></li>
+                {howTo.map(([icon, b, rest, short]) => (
+                  <li key={icon}><HowIcon k={icon} /><span><b>{b}</b> <span className="long">{rest}</span><span className="short">{short}</span></span></li>
                 ))}
               </ul>
             </section>

@@ -100,6 +100,9 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .howto li b { color: var(--ink); font-weight: 800; }
 .how-icon { flex: none; width: 22px; height: 22px; fill: none; stroke: #ffd08a; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
+/* short versions of the how-to lines (phones only) */
+.howto .short { display: none; }
+
 /* the first few seconds of a game on a phone: a reminder of the controls */
 .hint-wrap { position: absolute; left: 0; right: 0; top: 42%; z-index: 4; display: flex; justify-content: center; pointer-events: none; }
 .hint { display: flex; gap: 10px; align-items: center; width: auto; padding: 10px 16px; border-radius: 999px; background: rgba(20, 8, 30, .6); backdrop-filter: blur(6px); font-size: 14px; white-space: nowrap; animation: banner 3.2s ease both; }
@@ -127,3 +130,27 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 @media (max-width: 420px) { .by { font-size: 12.5px; padding: 8px 11px; } .sheet { padding-left: 22px; padding-right: 22px; } }
 @media (max-height: 700px) { .sheet h1.title { font-size: min(52px, calc(var(--col) * .14)); } .rec-text b { font-size: 24px; } .preview { width: 60px; height: 53px; } .chars em { display: none; } }
 @media (prefers-reduced-motion: reduce) { .overlay, .combo, .hurry, .banner { animation: none; } }
+
+/* Phones: a calmer start screen. Fewer lines: no tagline, a slim best-floor row, names only on the climbers,
+   and just the two controls you need (tilt, tap). */
+@media (max-width: 600px) {
+  .menu .kicker { display: none; }
+  .sheet.menu > h1.title { margin-top: auto; }
+  .menu .record { padding: 10px 14px; margin-bottom: 14px; }
+  .menu .rec-text { flex-direction: row; align-items: baseline; gap: 8px; }
+  .menu .rec-text small { font-size: 10.5px; }
+  .menu .rec-text b { font-size: 20px; }
+  .menu .rec-text span { display: none; }
+  .menu .rec-tower { width: 18px; }
+  .menu .rec-tower i { min-height: 5px; }
+  .menu .chars em { display: none; }
+  .menu .chars button { padding: 6px 4px 10px; }
+  .menu .howto { margin-top: 14px; }
+  .menu .howto h3 { display: none; }
+  .menu .howto ul { display: flex; gap: 16px; }
+  .menu .howto li:nth-child(n+3) { display: none; }
+  .menu .howto li { align-items: center; font-size: 13px; }
+  .menu .howto li span { white-space: nowrap; }
+  .menu .howto .long { display: none; }
+  .menu .howto .short { display: inline; }
+}
