@@ -289,7 +289,13 @@ export class Game {
     drawWalls(g, W, this.camY, vh, WALL, height, (y) => levelOf(Math.floor((BASE - y) / GAP)), t);
     for (const L of this.ledges) if (L && L.y - this.camY > -40 && L.y - this.camY < vh + 60) drawLedge(g, L, t, height);
     drawParticles(g, this.particles);
-    if (this.state !== 'menu') drawCharacter(g, this.player, t, this.state, this.character);
+    if (this.state !== 'menu') {
+      // phones: draw the climber bigger (same hitbox), scaled up from the feet
+      const p = this.player, k = this.pad ? 1.35 : 1;
+      g.save(); g.translate(p.x + p.w / 2, p.y + p.h); g.scale(k, k); g.translate(-(p.x + p.w / 2), -(p.y + p.h));
+      drawCharacter(g, p, t, this.state, this.character);
+      g.restore();
+    }
     for (const u of this.popups) {
       g.globalAlpha = Math.min(1, u.life * 2);
       g.font = '800 18px "DM Sans Variable", sans-serif'; g.textAlign = 'center';
