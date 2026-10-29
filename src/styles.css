@@ -65,6 +65,8 @@ button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-c
 .chars.mini { grid-template-columns: repeat(6, 1fr); gap: 6px; }
 .chars.mini button { padding: 2px 0 4px; border-radius: 12px; }
 .chars.mini .preview { width: 100%; height: auto; aspect-ratio: 72 / 64; }
+.chars.mini span { font-size: 10.5px; letter-spacing: -.01em; margin-top: 1px; white-space: nowrap; }
+.chars.mini button.on span { color: var(--ink); }
 .go { align-self: flex-start; display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-width: 132px; height: 52px; padding: 0 28px; border: 0; border-radius: 999px; background: var(--ink); color: #22102a; font-weight: 800; font-size: 17px; box-shadow: 0 12px 30px rgba(0, 0, 0, .35); transition: transform .2s ease; }
 .go:hover { transform: translateY(-2px); }
 .go-icon { width: 34px; height: 34px; border-radius: 50%; background: #22102a; display: grid; place-items: center; }

@@ -196,8 +196,9 @@ export default function App() {
             <p className="pick-label">Switch climber</p>
             <div className="chars mini" role="radiogroup" aria-label="Switch climber">
               {CHARACTERS.map((c) => (
-                <button key={c.id} role="radio" aria-checked={character === c.id} className={character === c.id ? 'on' : ''} onClick={() => pick(c.id)} aria-label={c.name} title={c.name}>
+                <button key={c.id} role="radio" aria-checked={character === c.id} className={character === c.id ? 'on' : ''} onClick={() => pick(c.id)} title={c.about}>
                   <Preview id={c.id} active={character === c.id} />
+                  <span>{c.name}</span>
                 </button>
               ))}
             </div>
